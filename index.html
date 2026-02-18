@@ -886,7 +886,87 @@ body{
 .screen{ display:none; }
 .screen.active{ display:flex; }
 
+
+/* Premios */
+.prize-row{
+  display:flex; align-items:flex-start; justify-content:space-between; gap:12px;
+  padding:14px; border-radius:16px; background:rgba(11,36,66,.04);
+  border:1px solid rgba(0,0,0,.06);
+}
+.prize-title{ font-weight:950; color:var(--text); }
+.prize-desc{ margin-top:6px; font-size:13px; color:rgba(11,36,66,.72); line-height:1.35; }
+.prize-meta{ margin-top:10px; font-size:12px; color:rgba(11,36,66,.6); font-weight:850; }
+.prize-pill{
+  display:inline-flex; align-items:center; justify-content:center;
+  padding:8px 10px; border-radius:999px; font-weight:950; font-size:12px;
+  background:rgba(240,107,91,.18); color:var(--navy-2); white-space:nowrap;
+}
+.level-card{
+  width:100%;
+  max-width:420px;
+  margin:0 auto;
+  border-radius:28px;
+  overflow:hidden;
+  box-shadow:0 30px 70px rgba(0,0,0,.22);
+  background: #E45F4E;
+  position:relative;
+  min-height:520px;
+}
+.level-card .dots{
+  position:absolute; inset:-40px auto auto -60px;
+  width:180px; height:180px; border-radius:999px;
+  border:3px dotted rgba(255,255,255,.35);
+}
+.level-card .dots2{
+  position:absolute; right:-60px; bottom:-60px;
+  width:220px; height:220px; border-radius:999px;
+  border:3px dotted rgba(255,255,255,.35);
+}
+.level-card .blob{
+  position:absolute; right:-40px; bottom:-40px;
+  width:320px; height:320px; border-radius:70% 50% 60% 55%;
+  background: #071B33;
+}
+.level-card .avatar{
+  position:absolute; left:50%; top:170px;
+  transform:translateX(-50%);
+  width:210px; height:210px; border-radius:999px;
+  background:#D9D6CF;
+  border:10px solid rgba(255,255,255,.16);
+  display:grid; place-items:center;
+  font-weight:950;
+  color:#2A8C79;
+  text-align:center;
+  line-height:1.05;
+  padding:18px;
+}
+.level-card .name{
+  position:absolute; left:50%; top:78px;
+  transform:translateX(-50%);
+  font-size:56px;
+  font-weight:950;
+  color:white;
+  letter-spacing:.5px;
+  text-shadow:0 10px 24px rgba(0,0,0,.18);
+  rotate:-8deg;
+}
+.level-card .level{
+  position:absolute; left:50%; bottom:88px;
+  transform:translateX(-50%);
+  font-size:46px;
+  font-weight:950;
+  color:white;
+  letter-spacing:.6px;
+  text-shadow:0 10px 24px rgba(0,0,0,.20);
+  rotate:8deg;
+}
+.level-card .small-dot{
+  position:absolute; left:18px; bottom:140px;
+  width:54px; height:54px; border-radius:999px;
+  background:rgba(0,0,0,.18);
+}
 </style>
+
 </head>
 
 <body>
@@ -1006,6 +1086,20 @@ body{
             </div>
             <div class="hr" style="margin:0 14px;"></div>
             <div id="rankingPanel"></div>
+
+            <div style="height:12px;"></div>
+            <div class="panel" style="margin:0;">
+              <div class="panel-inner" style="background:linear-gradient(135deg, rgba(240,107,91,.18), rgba(11,36,66,.05)); border:1px solid rgba(240,107,91,.28);">
+                <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+                  <div>
+                    <div style="font-weight:950; color:var(--text);">🎁 Descubre los premios por nivel</div>
+                    <div class="muted" style="margin-top:6px;">Sube puntos y entra en sorteos exclusivos.</div>
+                  </div>
+                  <button class="btn primary" id="btnPremiosHome" style="min-width:120px;">Ver premios</button>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 
@@ -1411,6 +1505,98 @@ body{
     </section>
 
 
+
+    <!-- SCREEN: PREMIOS -->
+    <section class="screen hidden-right" id="screenPremios">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromPremios">←</button>
+        <div class="detail-title">PREMIOS</div>
+      </div>
+
+      <div class="main" style="padding:16px;">
+        <div class="panel">
+          <div class="panel-inner" style="background:linear-gradient(135deg, var(--navy), #0A1F3A); border-radius:16px;">
+            <div style="font-size:18px; font-weight:950; color:white;">Premios y sorteos</div>
+            <div style="margin-top:8px; font-size:13px; color:rgba(255,255,255,.78); line-height:1.35;">
+              Sube de nivel acumulando puntos y entra en sorteos exclusivos. Los premios pueden variar por residencia.
+            </div>
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <div class="panel">
+          <div class="panel-inner">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <div style="font-weight:950; color:var(--text);">Sorteos activos</div>
+              <button class="btn ghost" id="btnMiNivel" style="min-width:120px;">Mi nivel</button>
+            </div>
+
+            <div style="height:12px;"></div>
+
+            <div class="prize-row">
+              <div style="flex:1;">
+                <div class="prize-title">Nivel 15</div>
+                <div class="prize-desc">Sorteo: Cena para 2 🍽️</div>
+                <div class="prize-meta">Expira: <span id="prizeExp15">31/03/2026</span></div>
+              </div>
+              <div class="prize-pill">15</div>
+            </div>
+
+            <div style="height:10px;"></div>
+
+            <div class="prize-row">
+              <div style="flex:1;">
+                <div class="prize-title">Nivel 50</div>
+                <div class="prize-desc">Sorteo: Auriculares JBL 🎧</div>
+                <div class="prize-meta">Expira: <span id="prizeExp50">30/06/2026</span></div>
+              </div>
+              <div class="prize-pill">50</div>
+            </div>
+
+            <div style="height:10px;"></div>
+
+            <div class="prize-row">
+              <div style="flex:1;">
+                <div class="prize-title">Nivel 100</div>
+                <div class="prize-desc">Sorteo: Fin de semana sorpresa ✨</div>
+                <div class="prize-meta">Expira: <span id="prizeExp100">31/08/2026</span></div>
+              </div>
+              <div class="prize-pill">100</div>
+            </div>
+
+            <div style="margin-top:14px; background:rgba(240,107,91,.10); border:1px solid rgba(240,107,91,.35); color:rgba(11,36,66,.75); padding:12px; border-radius:14px; font-size:12px; line-height:1.35;">
+              <b>Nota:</b> Los ganadores se anuncian en la app. Kadora podrá solicitar verificación en recepción.
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN: MI NIVEL (tarjeta para recepción) -->
+    <section class="screen hidden-right" id="screenNivelCard">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromNivelCard">←</button>
+        <div class="detail-title">MI NIVEL</div>
+      </div>
+
+      <div class="main" style="padding:16px; display:flex; align-items:center; justify-content:center;">
+        <div class="level-card" id="levelCard">
+          <div class="dots"></div>
+          <div class="dots2"></div>
+          <div class="blob"></div>
+          <div class="small-dot"></div>
+
+          <div class="name" id="nivelNombre">Nombre</div>
+          <div class="avatar">
+            <div>Foto de<br/>perfil</div>
+          </div>
+          <div class="level" id="nivelNivel">Nivel 5</div>
+        </div>
+      </div>
+    </section>
+
+
 <!-- SCREEN: PERFIL -->
     <section class="screen hidden-right" id="screenPerfil">
       <div class="topbar-detail">
@@ -1532,6 +1718,9 @@ body{
   </div>
 
 <script>
+
+
+
 
 /* ----------------- Demo “estado” ----------------- */
 const STATE = {
@@ -2514,10 +2703,12 @@ const mapa = document.getElementById("screenMapa");
 const instalaciones = document.getElementById("screenInstalaciones");
 const faq = document.getElementById("screenFAQ");
 const sugerencias = document.getElementById("screenSugerencias");
+const premios = document.getElementById("screenPremios");
+const nivelCard = document.getElementById("screenNivelCard");
 const perfil = document.getElementById("screenPerfil");
 const survey = document.getElementById("screenSurvey");
 function hideAll(){
-  [home, agenda, horarios, actividades, menu, mapa, instalaciones, faq, sugerencias, perfil, survey].forEach(s => {
+  [home, agenda, horarios, actividades, menu, mapa, instalaciones, faq, sugerencias, premios, nivelCard, perfil, survey].forEach(s => {
     if(!s) return;
     s.classList.remove("active");
     s.classList.add("hidden-right");
@@ -2573,6 +2764,26 @@ function goMapa(){
   mapa.classList.add("active");
   home.classList.add("hidden-left");
   setNavCompact(false);
+}
+
+function goPremios(){
+  hideAll();
+  premios.classList.remove("hidden-right");
+  premios.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(false);
+}
+
+function goNivelCard(){
+  hideAll();
+  nivelCard.classList.remove("hidden-right");
+  nivelCard.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(false);
+  const nameEl = document.getElementById("perfilName");
+  const lvlEl = document.getElementById("perfilLevel");
+  document.getElementById("nivelNombre").textContent = nameEl ? nameEl.textContent : "Nombre";
+  document.getElementById("nivelNivel").textContent = lvlEl ? lvlEl.textContent : "Nivel 5";
 }
 
 function goInstalaciones(){
@@ -2637,6 +2848,14 @@ document.getElementById("backFromInstalaciones").addEventListener("click", goHom
 document.getElementById("backFromFAQ").addEventListener("click", goHome);
 document.getElementById("backFromSugerencias").addEventListener("click", goHome);
 document.getElementById("backFromPerfil").addEventListener("click", goHome);
+document.getElementById("backFromPremios").addEventListener("click", goHome);
+document.getElementById("backFromNivelCard").addEventListener("click", goPremios);
+const bp = document.getElementById("btnPremios");
+if(bp) bp.addEventListener("click", goPremios);
+const bph = document.getElementById("btnPremiosHome");
+if(bph) bph.addEventListener("click", goPremios);
+const mn = document.getElementById("btnMiNivel");
+if(mn) mn.addEventListener("click", goNivelCard);
 document.getElementById("btnSurvey").addEventListener("click", goSurvey);
 document.getElementById("backFromSurvey").addEventListener("click", goPerfil);
 /* Ranking filter */
@@ -2671,6 +2890,9 @@ function init(){
   goHome();
 }
 init();
+
+
+
 
 </script>
 </body>
