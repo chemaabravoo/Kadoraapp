@@ -1,0 +1,2677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+<title>Kadora Sevilla - Demo App</title>
+
+<style>
+:root{
+  --navy:#0E2A4C;
+  --navy-2:#0B2442;
+  --coral:#F06B5B;
+  --bg:#F4F5F7;
+  --white:#ffffff;
+
+  --text:#0B2442;
+  --muted:rgba(11,36,66,.65);
+  --line:rgba(11,36,66,.12);
+
+  --radius:18px;
+  --radius2:22px;
+  --shadow:0 10px 25px rgba(0,0,0,.10);
+}
+
+/* Simulador móvil (solo escritorio). En móvil ocupa pantalla completa. */
+body{
+  margin:0;
+  background:#111;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;
+}
+
+.mobile-frame{
+  width:390px;
+  height:844px;
+  background:var(--bg);
+  border-radius:40px;
+  overflow:hidden;
+  box-shadow:0 30px 60px rgba(0,0,0,.6);
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+
+/* App screens */
+.screen{
+  position:absolute;
+  inset:0;
+  background:var(--bg);
+  display:flex;
+  flex-direction:column;
+  transform:translateX(0);
+  transition:transform .22s ease;
+}
+.screen.hidden-right{ transform:translateX(120%); }
+.screen.hidden-left{ transform:translateX(-120%); }
+
+/* Top bar */
+.topbar{
+  background:var(--navy);
+  padding:16px 16px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.topbar img{ height:34px; }
+
+/* Topbar for detail screens */
+.topbar-detail{
+  background:var(--navy);
+  padding:16px 14px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  position:sticky;
+  top:0;
+  z-index:10;
+}
+.back-btn{
+  border:none;
+  background:transparent;
+  color:var(--coral);
+  font-size:22px;
+  cursor:pointer;
+  padding:6px 8px;
+}
+.detail-title{
+  flex:1;
+  text-align:center;
+  letter-spacing:1px;
+  font-weight:800;
+  color:var(--coral);
+  font-size:22px;
+  margin-right:34px; /* compensa botón back */
+}
+
+/* Scrollable main */
+.main{
+  padding-bottom:88px; /* espacio fijo para bottom nav (siempre visible) */
+  overflow:auto;
+}
+
+/* Hero (NO recorta) */
+.hero{
+  margin:15px;
+  border-radius:var(--radius);
+  overflow:hidden;
+  box-shadow:var(--shadow);
+  background:var(--white);
+}
+.hero img{
+  width:100%;
+  height:190px;
+  display:block;
+  object-fit:cover;
+  background:var(--white);
+}
+
+/* Sections */
+.section{
+  padding:14px 15px 6px 15px;
+}
+.section-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.section-title{
+  font-size:22px;
+  letter-spacing:1px;
+  color:var(--text);
+  cursor:pointer;
+  user-select:none;
+}
+.section-title.no-link{ cursor:default; }
+.section-title:active{ opacity:.7; }
+.section-meta{
+  color:var(--muted);
+  font-size:13px;
+}
+
+/* Horizontal scrollers */
+.hscroll{
+  display:flex;
+  gap:12px;
+  overflow-x:auto;
+  padding-bottom:10px;
+  scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch;
+}
+.hscroll::-webkit-scrollbar{ height:6px; }
+.hscroll::-webkit-scrollbar-thumb{ background:rgba(0,0,0,.12); border-radius:999px; }
+
+.tile{
+  min-width:150px;
+  background:var(--navy);
+  color:var(--coral);
+  border-radius:var(--radius);
+  padding:18px 14px;
+  box-shadow:var(--shadow);
+  text-align:center;
+  scroll-snap-align:start;
+}
+.tile .icon{ font-size:26px; margin-bottom:10px; }
+.tile .label{
+  font-size:13px;
+  letter-spacing:.6px;
+  text-transform:uppercase;
+  line-height:1.1;
+  color:var(--coral);
+}
+.tile .sub{
+  margin-top:6px;
+  font-size:12px;
+  color:rgba(255,255,255,.75);
+}
+
+/* Agenda cards (horizontal) */
+.agenda-card{
+  min-width:280px;
+  background:var(--coral);
+  color:var(--navy-2);
+  border-radius:var(--radius);
+  padding:18px;
+  box-shadow:var(--shadow);
+  scroll-snap-align:start;
+}
+.agenda-card h3{
+  font-size:20px;
+  margin:0 0 8px 0;
+  letter-spacing:.6px;
+}
+.agenda-card p{ margin:0; font-size:15px; color:rgba(11,36,66,.70); }
+
+/* Panels */
+.stack{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  padding-bottom:8px;
+}
+
+.panel{
+  background:var(--white);
+  border-radius:var(--radius);
+  box-shadow:var(--shadow);
+  border:1px solid rgba(0,0,0,.04);
+  overflow:hidden;
+}
+.panel-inner{ padding:14px; }
+
+.panel-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:8px;
+}
+.panel-title h3{
+  margin:0;
+  font-size:16px;
+  letter-spacing:.4px;
+  color:var(--text);
+}
+.pill{
+  font-size:12px;
+  padding:6px 10px;
+  border-radius:999px;
+  background:rgba(240,107,91,.14);
+  color:var(--navy-2);
+  font-weight:800;
+  white-space:nowrap;
+}
+
+.btn-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+.btn{
+  border:none;
+  cursor:pointer;
+  border-radius:12px;
+  padding:10px 12px;
+  font-size:13px;
+  box-shadow:0 8px 18px rgba(0,0,0,.08);
+}
+.btn.primary{
+  background:var(--coral);
+  color:var(--navy-2);
+  font-weight:900;
+}
+.btn.ghost{
+  background:rgba(11,36,66,.08);
+  color:var(--navy-2);
+  font-weight:800;
+}
+.btn:active{ transform:translateY(1px); }
+.btn:disabled{ opacity:.55; cursor:default; }
+
+.muted{
+  color:var(--muted);
+  font-size:13px;
+  line-height:1.35;
+}
+
+.hr{ height:1px; background:rgba(0,0,0,.06); margin:12px 0; }
+
+/* Quiz */
+.quiz-q{
+  font-size:15px;
+  font-weight:900;
+  color:var(--text);
+  margin:0;
+}
+.quiz-opts{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:10px;
+}
+.opt{
+  border:1px solid rgba(11,36,66,.12);
+  background:#fff;
+  border-radius:12px;
+  padding:11px 12px;
+  text-align:left;
+  cursor:pointer;
+  font-size:14px;
+  color:var(--text);
+}
+.opt:active{ transform:translateY(1px); }
+.opt.good{ border-color: rgba(0,160,90,.35); background: rgba(0,160,90,.10); }
+.opt.bad{ border-color: rgba(200,0,0,.22); background: rgba(200,0,0,.08); }
+
+/* Wall */
+.post{
+  padding:14px;
+  display:flex;
+  gap:12px;
+  align-items:flex-start;
+}
+.avatar{
+  width:38px;
+  height:38px;
+  border-radius:999px;
+  background:rgba(11,36,66,.10);
+  display:grid;
+  place-items:center;
+  color:var(--navy-2);
+  font-weight:900;
+}
+.post h4{ margin:0; font-size:14px; color:var(--text); }
+.post .meta{ font-size:12px; color:var(--muted); margin-top:2px; }
+.post .text{
+  margin-top:8px;
+  font-size:13px;
+  color:rgba(11,36,66,.78);
+  line-height:1.4;
+}
+.post a{ color:var(--navy); font-weight:900; text-decoration:none; }
+
+/* Ranking */
+.rank-item{
+  padding:12px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.rank-left{ display:flex; align-items:center; gap:10px; }
+.medal{
+  width:28px; height:28px;
+  border-radius:10px;
+  display:grid;
+  place-items:center;
+  background:rgba(240,107,91,.14);
+  color:var(--navy-2);
+  font-weight:900;
+}
+.rank-name{ font-size:14px; font-weight:900; color:var(--text); }
+.rank-sub{ font-size:12px; color:var(--muted); margin-top:2px; }
+.points{
+  font-weight:900;
+  color:var(--navy-2);
+  background:rgba(11,36,66,.08);
+  padding:8px 10px;
+  border-radius:999px;
+}
+
+/* Bottom nav (SIEMPRE estático) */
+.bottom-nav{
+  position:absolute;
+  left:0; right:0; bottom:0;
+  background:var(--navy);
+  display:flex;
+  justify-content:space-around;
+  padding:10px 0 12px;
+  z-index:999;
+}
+.bottom-nav button{
+  border:none;
+  background:transparent;
+  color:rgba(255,255,255,.92);
+  font-size:12px;
+  cursor:pointer;
+  text-align:center;
+}
+.bottom-nav button span{
+  display:block;
+  font-size:18px;
+  margin-bottom:3px;
+  color:var(--coral);
+}
+.bottom-nav.compact{ padding:6px 0 8px; }
+.bottom-nav.compact button{ font-size:11px; }
+.bottom-nav.compact button span{ font-size:16px; margin-bottom:2px; }
+
+/* Toast */
+.toast{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:92px;
+  background:rgba(11,36,66,.92);
+  color:white;
+  padding:10px 12px;
+  border-radius:14px;
+  font-size:13px;
+  box-shadow:0 12px 30px rgba(0,0,0,.18);
+  display:none;
+  z-index:2000;
+}
+
+/* Modal (popup) */
+.modal-backdrop{
+  position:absolute;
+  inset:0;
+  background:rgba(0,0,0,.35);
+  display:none;
+  z-index:1500;
+}
+.modal{
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  width:calc(100% - 40px);
+  max-width:340px;
+  background:var(--white);
+  border-radius:18px;
+  box-shadow:0 30px 70px rgba(0,0,0,.35);
+  overflow:hidden;
+  border:1px solid rgba(0,0,0,.06);
+}
+.modal-head{
+  background:linear-gradient(135deg, var(--navy), #0A1F3A);
+  padding:14px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+}
+.modal-head .ttl{
+  color:var(--coral);
+  font-weight:950;
+  letter-spacing:.6px;
+}
+.modal-close{
+  border:none;
+  background:rgba(255,255,255,.12);
+  color:white;
+  border-radius:10px;
+  padding:6px 10px;
+  cursor:pointer;
+}
+.modal-body{ padding:14px; }
+.modal-body .muted{ font-size:13px; }
+.modal-actions{
+  padding:0 14px 14px;
+  display:flex;
+  gap:10px;
+}
+.modal-actions .btn{ flex:1; }
+
+/* Form styles */
+.form-grid{ display:flex; flex-direction:column; gap:10px; }
+.field label{
+  display:block;
+  font-size:12px;
+  letter-spacing:.4px;
+  color:var(--muted);
+  margin-bottom:6px;
+  font-weight:800;
+}
+.field input, .field select, .field textarea{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid rgba(11,36,66,.14);
+  border-radius:12px;
+  padding:11px 12px;
+  font-size:14px;
+  outline:none;
+}
+.field textarea{ min-height:84px; resize:vertical; }
+.field input:focus, .field select:focus, .field textarea:focus{
+  border-color: rgba(240,107,91,.60);
+  box-shadow: 0 0 0 3px rgba(240,107,91,.12);
+}
+
+/* Calendar month view */
+.month-wrap{ padding:16px; }
+.month-title{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+.month-title h2{
+  margin:0;
+  font-size:20px;
+  letter-spacing:.6px;
+  color:var(--text);
+}
+.calendar-grid{
+  background:var(--white);
+  border-radius:18px;
+  box-shadow:var(--shadow);
+  border:1px solid rgba(0,0,0,.05);
+  overflow:hidden;
+}
+.cal-dow{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+  background:rgba(11,36,66,.06);
+  padding:10px 10px;
+  font-size:11px;
+  font-weight:900;
+  color:rgba(11,36,66,.65);
+  letter-spacing:.5px;
+}
+.cal-cells{
+  display:grid;
+  grid-template-columns:repeat(7,1fr);
+}
+.cal-cell{
+  min-height:56px;
+  padding:8px 8px;
+  border-top:1px solid rgba(0,0,0,.05);
+  border-right:1px solid rgba(0,0,0,.05);
+  cursor:pointer;
+  position:relative;
+}
+.cal-cell:nth-child(7n){ border-right:none; }
+.cal-cell .n{
+  font-weight:950;
+  color:rgba(11,36,66,.75);
+  font-size:13px;
+}
+.cal-cell.muted-day .n{ opacity:.25; }
+.cal-badge{
+  position:absolute;
+  right:8px;
+  bottom:8px;
+  font-size:11px;
+  font-weight:950;
+  padding:4px 7px;
+  border-radius:999px;
+  background:rgba(240,107,91,.14);
+  color:var(--navy-2);
+}
+.cal-cell.today{
+  background:rgba(240,107,91,.08);
+}
+.cal-cell:active{ transform:translateY(1px); }
+
+/* Horarios (lista más compacta) */
+.blocks{
+  padding:16px 16px 100px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+.block{
+  background:var(--white);
+  border-radius:14px;
+  padding:12px 14px;
+  box-shadow:0 10px 22px rgba(0,0,0,.08);
+  border:1px solid rgba(0,0,0,.05);
+}
+.block .title{
+  font-size:16px;
+  letter-spacing:.6px;
+  color:var(--text);
+  font-weight:950;
+}
+.block .time{
+  margin-top:6px;
+  font-size:13px;
+  color:rgba(11,36,66,.60);
+  font-weight:800;
+}
+
+/* Perfil */
+.profile-top{
+  display:flex;
+  align-items:center;
+  gap:12px;
+}
+.profile-photo{
+  width:64px;
+  height:64px;
+  border-radius:18px;
+  background:linear-gradient(135deg, rgba(240,107,91,.20), rgba(11,36,66,.08));
+  display:grid;
+  place-items:center;
+  font-weight:950;
+  color:var(--navy-2);
+  overflow:hidden;
+}
+.profile-photo img{ width:100%; height:100%; object-fit:cover; display:block; }
+.profile-name{
+  font-size:20px;
+  font-weight:950;
+  color:var(--text);
+  line-height:1.1;
+}
+.profile-res{
+  margin-top:6px;
+  font-size:13px;
+  color:rgba(11,36,66,.65);
+  font-weight:850;
+}
+.big-stats{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
+  margin-top:14px;
+}
+.stat-card{
+  background:rgba(11,36,66,.06);
+  border-radius:16px;
+  padding:12px;
+  border:1px solid rgba(0,0,0,.04);
+}
+.stat-label{
+  font-size:12px;
+  font-weight:900;
+  color:rgba(11,36,66,.65);
+  letter-spacing:.4px;
+}
+.stat-value{
+  margin-top:6px;
+  font-size:20px;
+  font-weight:950;
+  color:var(--text);
+}
+.spark{
+  margin-top:10px;
+  height:26px;
+  display:flex;
+  gap:4px;
+  align-items:flex-end;
+}
+.spark span{
+  flex:1;
+  background:rgba(240,107,91,.35);
+  border-radius:8px;
+}
+
+/* Fullscreen on real mobile */
+@media (max-width: 500px){
+  body{
+    height:auto;
+    background:var(--bg);
+    display:block;
+  }
+  .mobile-frame{
+    width:100vw;
+    height:100vh;
+    border-radius:0;
+    box-shadow:none;
+  }
+}
+
+/* FAQ */
+.faq-hero{
+  background:linear-gradient(135deg, var(--navy), #0A1F3A);
+  color:white;
+  border-radius:18px;
+  padding:16px;
+  box-shadow:var(--shadow);
+}
+.faq-hero h2{
+  margin:0;
+  font-size:18px;
+  font-weight:950;
+  letter-spacing:.4px;
+}
+.faq-hero p{
+  margin:8px 0 0;
+  color:rgba(255,255,255,.85);
+  font-size:13px;
+  line-height:1.4;
+}
+.faq-search{
+  margin-top:12px;
+  display:flex;
+  gap:10px;
+  align-items:center;
+}
+.faq-search .search{
+  flex:1;
+  display:flex;
+  align-items:center;
+  gap:8px;
+  background:var(--white);
+  border-radius:14px;
+  padding:10px 12px;
+  border:1px solid rgba(0,0,0,.06);
+}
+.faq-search input{
+  border:none;
+  outline:none;
+  width:100%;
+  font-weight:800;
+  color:var(--navy-2);
+  font-size:13px;
+}
+.faq-pill{
+  font-size:12px;
+  padding:8px 10px;
+  border-radius:999px;
+  background:rgba(240,107,91,.14);
+  color:var(--navy-2);
+  font-weight:950;
+  white-space:nowrap;
+}
+.faq-list{ margin-top:12px; }
+.faq-item{
+  background:var(--white);
+  border-radius:14px;
+  box-shadow:0 10px 22px rgba(0,0,0,.06);
+  border:1px solid rgba(0,0,0,.05);
+  overflow:hidden;
+  margin-bottom:10px;
+}
+.faq-q{
+  padding:14px 14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  cursor:pointer;
+}
+.faq-q .left{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  min-width:0;
+}
+.faq-ico{
+  width:28px;
+  height:28px;
+  border-radius:10px;
+  background:rgba(11,36,66,.06);
+  display:grid;
+  place-items:center;
+  color:var(--navy-2);
+  font-weight:950;
+  flex:0 0 auto;
+}
+.faq-q .txt{
+  font-weight:950;
+  color:var(--text);
+  font-size:14px;
+  line-height:1.2;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.faq-q .chev{
+  width:26px; height:26px;
+  border-radius:10px;
+  background:rgba(240,107,91,.12);
+  display:grid;
+  place-items:center;
+  color:var(--navy-2);
+  font-weight:950;
+  flex:0 0 auto;
+  transition:transform .18s ease;
+}
+.faq-a{
+  padding:0 14px 14px 52px;
+  display:none;
+}
+.faq-a .muted{ font-size:13px; }
+.faq-item.open .faq-a{ display:block; }
+.faq-item.open .faq-q .chev{ transform:rotate(180deg); }
+
+.faq-note{
+  margin-top:12px;
+  border:1px solid rgba(240,107,91,.55);
+  background:rgba(240,107,91,.10);
+  padding:12px 12px;
+  border-radius:14px;
+  font-size:12px;
+  color:rgba(11,36,66,.78);
+}
+
+/* Survey wave progress (más visual) */
+.wave-wrap{
+  position:sticky;
+  top:0;
+  z-index:20;
+  padding:12px 16px 14px;
+  background:linear-gradient(to bottom, rgba(244,245,247,1), rgba(244,245,247,.92));
+  border-bottom:1px solid rgba(0,0,0,.06);
+}
+.wave-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:10px;
+}
+.wave-head .title{
+  font-weight:950;
+  color:var(--text);
+}
+.wave-head .pct{
+  font-weight:950;
+  color:var(--navy-2);
+  background:rgba(11,36,66,.08);
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:12px;
+}
+.wave-card{
+  background:var(--coral);
+  border-radius:18px;
+  padding:12px 12px;
+  box-shadow:0 14px 32px rgba(0,0,0,.10);
+  border:1px solid rgba(0,0,0,.05);
+}
+.wave-svg{
+  width:100%;
+  height:56px;
+  display:block;
+}
+.wave-track{
+  stroke:rgba(11,36,66,.22);
+  stroke-width:18;
+  fill:none;
+  stroke-linecap:round;
+}
+.wave-fill{
+  stroke:rgba(11,36,66,.98);
+  stroke-width:18;
+  fill:none;
+  stroke-linecap:round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transition:stroke-dashoffset .25s ease;
+}
+.wave-sub{ margin-top:8px; }
+
+/* Suggestion box */
+.charcount{
+  margin-top:6px;
+  font-size:12px;
+  color:rgba(11,36,66,.65);
+  font-weight:900;
+  text-align:right;
+}
+
+
+/* Horarios: selector de día */
+.day-strip{
+  display:flex;
+  gap:10px;
+  overflow-x:auto;
+  padding:14px 16px 6px;
+  -webkit-overflow-scrolling:touch;
+}
+.day-strip::-webkit-scrollbar{ height:6px; }
+.day-pill{
+  border:none;
+  cursor:pointer;
+  white-space:nowrap;
+  padding:10px 12px;
+  border-radius:999px;
+  font-weight:950;
+  font-size:12px;
+  letter-spacing:.4px;
+  background:rgba(11,36,66,.08);
+  color:var(--navy-2);
+}
+.day-pill.active{
+  background:rgba(240,107,91,.22);
+  color:var(--navy-2);
+}
+.day-pill:active{ transform:translateY(1px); }
+
+
+/* Fix navegación: evitar clicks en pantallas ocultas */
+.screen.hidden-right, .screen.hidden-left{
+  pointer-events:none !important;
+}
+.screen:not(.hidden-right):not(.hidden-left){
+  pointer-events:auto;
+}
+
+
+/* Navigation hard-fix: only active screen is displayed */
+.screen{ display:none; }
+.screen.active{ display:flex; }
+
+</style>
+</head>
+
+<body>
+  <div class="mobile-frame">
+    <div class="toast" id="toast"></div>
+
+    <!-- MODAL (reutilizable) -->
+    <div class="modal-backdrop" id="modalBackdrop" aria-hidden="true">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+        <div class="modal-head">
+          <div class="ttl" id="modalTitle">Popup</div>
+          <button class="modal-close" id="modalClose">Cerrar</button>
+        </div>
+        <div class="modal-body" id="modalBody"></div>
+        <div class="modal-actions" id="modalActions"></div>
+      </div>
+    </div>
+
+    <!-- SCREEN: HOME -->
+    <section class="screen" id="screenHome">
+      <div class="topbar">
+        <img src="https://kadora.es/wp-content/uploads/2025/07/Logotipo-Kadora-Color-copia@2x-2048x663.webp" alt="Kadora" />
+      </div>
+
+      <div class="main" id="homeMain">
+        <div class="hero">
+          <img src="https://kadora.es/wp-content/uploads/2025/06/Kadora-Sevilla-Zona-recreo.jpg" alt="Kadora Sevilla" />
+        </div>
+
+        <!-- ACCESOS -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title no-link">ACCESOS</div>
+            <div class="section-meta">Desliza →</div>
+          </div>
+          <div class="hscroll" id="accessScroller"></div>
+        </div>
+
+        <!-- AGENDA (cards rápidas) -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title" id="agendaTitle">AGENDA</div>
+            <div class="section-meta">Toca “AGENDA” para ver el mes</div>
+          </div>
+          <div class="hscroll" id="agendaScroller"></div>
+        </div>
+
+        <!-- DESTACADOS -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title no-link">DESTACADOS</div>
+            <div class="section-meta" id="featuredMeta">Semana en juego</div>
+          </div>
+
+          <div class="stack">
+            <!-- Quiz semanal -->
+            <div class="panel" id="quizPanel">
+              <div class="panel-inner">
+                <div class="panel-title">
+                  <h3>Quiz semanal</h3>
+                  <div class="pill" id="quizPill">+0 pts</div>
+                </div>
+                <p class="muted" id="quizDesc">Responda todas bien y suba en el ranking.</p>
+
+                <div class="hr"></div>
+
+                <p class="quiz-q" id="quizQ">Cargando…</p>
+                <div class="quiz-opts" id="quizOpts"></div>
+
+                <div class="btn-row">
+                  <button class="btn ghost" id="btnNextQ">Siguiente</button>
+                  <button class="btn primary" id="btnResetQuiz">Reiniciar quiz</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Retos -->
+            <div class="panel">
+              <div class="panel-inner">
+                <div class="panel-title">
+                  <h3>Retos de la semana</h3>
+                  <div class="pill">Sorteos</div>
+                </div>
+
+                <div id="challenges"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MURO SOCIAL -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title no-link">MURO SOCIAL</div>
+            <div class="section-meta">Blog · Consejos</div>
+          </div>
+
+          <div class="panel" id="wallPanel"></div>
+        </div>
+
+        <!-- RANKING -->
+        <div class="section">
+          <div class="section-head">
+            <div class="section-title no-link">RANKING</div>
+            <div class="section-meta" id="rankMeta">Puntos semanales</div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-inner" style="padding-bottom:10px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div class="muted" style="font-weight:900;">Filtrar</div>
+                <select id="rankFilter" style="border:1px solid rgba(11,36,66,.14); border-radius:12px; padding:9px 10px; font-weight:900; color:var(--navy-2);">
+                  <option value="sevilla">Residencia Sevilla</option>
+                  <option value="global">Global Kadora</option>
+                </select>
+              </div>
+            </div>
+            <div class="hr" style="margin:0 14px;"></div>
+            <div id="rankingPanel"></div>
+          </div>
+        </div>
+
+        <div style="height:10px"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN: AGENDA (MES + popup del día) -->
+    <section class="screen hidden-right" id="screenAgenda">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromAgenda">←</button>
+        <div class="detail-title">AGENDA</div>
+      </div>
+
+      <div class="main">
+        <div class="month-wrap">
+          <div class="month-title">
+            <h2 id="monthName">Octubre 2026</h2>
+            <div class="pill" id="monthHint">Toca un día</div>
+          </div>
+
+          <div class="calendar-grid">
+            <div class="cal-dow">
+              <div>L</div><div>M</div><div>X</div><div>J</div><div>V</div><div>S</div><div>D</div>
+            </div>
+            <div class="cal-cells" id="calendarCells"></div>
+          </div>
+
+          <div class="panel" style="margin-top:14px;">
+            <div class="panel-inner">
+              <div class="panel-title">
+                <h3>Horario del día</h3>
+                <div class="pill" id="dayPill">Seleccione un día</div>
+              </div>
+              <div class="muted" style="margin-top:6px;">
+                Si toca un día del calendario, aparece un popup con todas las actividades de ese día.
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN: HORARIOS (lista compacta) -->
+    <section class="screen hidden-right" id="screenHorarios">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromHorarios">←</button>
+        <div class="detail-title">HORARIOS</div>
+      </div>
+
+      <div class="main">
+        <div class="day-strip" id="dayStrip"></div>
+        <div class="blocks" id="blocksList"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN: ACTIVIDADES (solo actividades del calendario) -->
+    <section class="screen hidden-right" id="screenActividades">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromActividades">←</button>
+        <div class="detail-title">ACTIVIDADES</div>
+      </div>
+
+      <div class="main" style="padding:16px;">
+        <div class="panel">
+          <div class="panel-inner">
+            <div class="panel-title">
+              <h3>Próximas actividades</h3>
+              <div class="pill" id="actCount">0</div>
+            </div>
+            <div class="muted" style="margin-top:6px;">
+              Aquí solo salen actividades que existan en el calendario.
+            </div>
+            <div class="hr"></div>
+            <div id="activitiesList"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    
+    <!-- SCREEN: MENÚ (Canva) -->
+    <section class="screen hidden-right" id="screenMenu">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromMenu">←</button>
+        <div class="detail-title">MENÚ</div>
+      </div>
+
+      <div class="main" style="padding:16px;">
+        <div class="panel">
+          <div class="panel-inner">
+            <div class="panel-title">
+              <h3>Menú de la semana</h3>
+              <div class="pill">Canva</div>
+            </div>
+            <div class="muted" style="margin-top:6px;">
+              Puedes verlo aquí y descargarlo.
+            </div>
+
+            <div style="position: relative; width: 100%; height: 0; padding-top: 141.4286%;
+              padding-bottom: 0; box-shadow: 0 2px 8px 0 rgba(63,69,81,0.16); margin-top: 1.2em; margin-bottom: 0.9em; overflow: hidden;
+              border-radius: 12px; will-change: transform;">
+              <iframe loading="lazy" style="position: absolute; width: 100%; height: 100%; top: 0; left: 0; border: none; padding: 0;margin: 0;"
+                src="https://www.canva.com/design/DAHBqjaU9WE/t4Hj92VCPKNrIXeRBzTRrQ/view?embed" allowfullscreen="allowfullscreen" allow="fullscreen">
+              </iframe>
+            </div>
+
+            <div class="btn-row">
+              <a class="btn primary" href="https://www.canva.com/design/DAHBqjaU9WE/t4Hj92VCPKNrIXeRBzTRrQ/view?utm_content=DAHBqjaU9WE&utm_campaign=designshare&utm_medium=embeds&utm_source=link"
+                 target="_blank" rel="noopener" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+                ⬇️ Descargar menú
+              </a>
+              <a class="btn ghost" href="https://www.canva.com/design/DAHBqjaU9WE/t4Hj92VCPKNrIXeRBzTRrQ/view?embed"
+                 target="_blank" rel="noopener" style="text-decoration:none; display:inline-flex; align-items:center; justify-content:center;">
+                Abrir en Canva
+              </a>
+            </div>
+
+            </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN: MAPA Y TRANSPORTE -->
+    <section class="screen hidden-right" id="screenMapa">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromMapa">←</button>
+        <div class="detail-title">MAPA Y TRANSPORTE</div>
+      </div>
+
+      <div class="main" style="padding:16px;">
+        <div class="panel">
+          <div class="panel-inner" style="background:linear-gradient(135deg, var(--navy), #0A1F3A); border-radius:16px;">
+            <div style="font-size:18px; font-weight:950; color:white;">Transporte público cercano</div>
+            <div style="margin-top:8px; font-size:13px; color:rgba(255,255,255,.78); line-height:1.35;">
+              Opciones de transporte público disponibles en las inmediaciones de la residencia.
+            </div>
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <div class="panel">
+          <div class="panel-inner">
+            <div style="font-weight:950; color:rgba(11,36,66,.65); letter-spacing:.7px; font-size:11px; text-transform:uppercase;">
+              Paradas y estaciones
+            </div>
+
+            <div style="margin-top:12px; background:rgba(11,36,66,.04); border-radius:16px; padding:12px; border:1px solid rgba(0,0,0,.05);">
+              <div style="display:flex; flex-direction:column; gap:10px; font-weight:850; color:var(--text); font-size:13px;">
+                <div>🚋 Tranvía San Bernardo</div>
+                <div>🚉 Apeadero San Bernardo</div>
+                <div>🚌 Estación de autobuses Prado de San Sebastián</div>
+                <div>🚇 Metro / Cercanías San Bernardo</div>
+                <div>🚇 Metro Nervión</div>
+                <div>🎓 Línea directa Universidad Pablo de Olavide</div>
+                <div>🎓 Línea directa Universidad Loyola</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <div class="panel">
+          <div class="panel-inner">
+            <div style="font-weight:950; color:rgba(11,36,66,.65); letter-spacing:.7px; font-size:11px; text-transform:uppercase;">
+              Ubicación
+            </div>
+
+            <div style="margin-top:10px; font-weight:950; color:var(--text); font-size:13px;">
+              Dirección: <span style="font-weight:850;">C/ Camilo José Cela, 54 · 41018 Sevilla</span>
+            </div>
+
+            <div style="margin-top:12px; border-radius:16px; overflow:hidden; border:1px solid rgba(0,0,0,.06); box-shadow:0 16px 36px rgba(0,0,0,.12);">
+              <div style="position:relative; width:100%; height:0; padding-top:70%;">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3170.397187763005!2d-5.979509323444869!3d37.38043817208744!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0xd126f2975ca86b5%3A0x586eae5f55081332!2sKadora%20Sevilla%20-%20Residencia%20de%20Estudiantes!5e0!3m2!1ses!2ses!4v1771412612731!5m2!1ses!2ses"
+                  style="position:absolute; inset:0; width:100%; height:100%; border:0;"
+                  allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+              </div>
+            </div>
+
+            <div style="margin-top:12px; background:rgba(240,107,91,.10); border:1px solid rgba(240,107,91,.35); color:rgba(11,36,66,.75); padding:12px; border-radius:14px; font-size:12px; line-height:1.35;">
+              Consulta horarios y posibles incidencias del transporte público antes de planificar tus desplazamientos.
+            </div>
+          </div>
+        </div>
+
+        <div style="height:10px;"></div>
+      </div>
+    </section>
+    <!-- SCREEN: INSTALACIONES -->
+    <section class="screen hidden-right" id="screenInstalaciones">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromInstalaciones">←</button>
+        <div class="detail-title">INSTALACIONES</div>
+      </div>
+
+      <div class="main" style="padding:16px;">
+        <div class="panel">
+          <div class="panel-inner">
+            <div style="font-size:18px; font-weight:950; color:var(--text);">Instalaciones</div>
+            <div class="muted" style="margin-top:8px;">
+              Espacios y servicios disponibles para los residentes. A continuación encontrarás una selección visual de las instalaciones para orientarte y aprovechar al máximo tu estancia.
+            </div>
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <!-- Gimnasio -->
+        <div class="panel">
+          <div class="panel-inner">
+            <div style="font-weight:950; color:rgba(11,36,66,.65); letter-spacing:.7px; font-size:11px; text-transform:uppercase;">
+              Galería de instalaciones
+            </div>
+
+            <div style="margin-top:12px; border-radius:16px; overflow:hidden; box-shadow:0 16px 36px rgba(0,0,0,.14); border:1px solid rgba(0,0,0,.06);">
+              <img src="https://kadora.es/wp-content/uploads/2025/06/Kadora-Sevilla-Gimnasio.jpg" alt="Gimnasio Kadora Sevilla" style="width:100%; height:190px; object-fit:cover; display:block;">
+            </div>
+
+            <div style="margin-top:12px;">
+              <div style="display:flex; align-items:flex-start; gap:8px;">
+                <div style="color:var(--coral); font-size:20px; line-height:1;">•</div>
+                <div>
+                  <div style="font-weight:950; color:var(--text);">Gimnasio</div>
+                  <div class="muted" style="margin-top:6px;">
+                    Zona de entrenamiento equipada. Uso obligatorio de toalla y calzado deportivo. Deja el material en su lugar al terminar.
+                  </div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <!-- Habitaciones (carrusel) -->
+        <div class="panel">
+          <div class="panel-inner">
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+              <div style="font-weight:950; color:var(--text);">Habitaciones</div>
+              <div class="pill">Desliza →</div>
+            </div>
+
+            <div class="muted" style="margin-top:6px;">
+              Descanso y estudio en tu espacio. Mantén el orden y comunica cualquier incidencia a través de la app.
+            </div>
+
+            <div class="hscroll" style="margin-top:12px;">
+              <div style="min-width:280px; border-radius:16px; overflow:hidden; box-shadow:0 16px 36px rgba(0,0,0,.14); border:1px solid rgba(0,0,0,.06); background:var(--white);">
+                <img src="https://kadora.es/wp-content/uploads/2025/07/sevilla-estudio-doble-3-1024x683.png" alt="Habitación Doble" style="width:100%; height:175px; object-fit:cover; display:block;">
+                <div style="padding:12px;">
+                  <div style="font-weight:950; color:var(--text);">Habitación Doble</div>
+                  <div class="muted" style="margin-top:6px;">Comparte o vive a tu ritmo (según modalidad).</div>
+                </div>
+              </div>
+
+              <div style="min-width:280px; border-radius:16px; overflow:hidden; box-shadow:0 16px 36px rgba(0,0,0,.14); border:1px solid rgba(0,0,0,.06); background:var(--white);">
+                <img src="https://kadora.es/wp-content/uploads/2025/07/sevilla-estudio-individual-5-1.png" alt="Estudio Individual" style="width:100%; height:175px; object-fit:cover; display:block;">
+                <div style="padding:12px;">
+                  <div style="font-weight:950; color:var(--text);">Estudio Individual</div>
+                  <div class="muted" style="margin-top:6px;">Tu espacio privado para descansar y estudiar.</div>
+                </div>
+              </div>
+
+              <div style="min-width:280px; border-radius:16px; overflow:hidden; box-shadow:0 16px 36px rgba(0,0,0,.14); border:1px solid rgba(0,0,0,.06); background:var(--white);">
+                <img src="https://kadora.es/wp-content/uploads/2025/07/sevilla-cluster-7-1.jpg" alt="Habitación en Cluster" style="width:100%; height:175px; object-fit:cover; display:block;">
+                <div style="padding:12px;">
+                  <div style="font-weight:950; color:var(--text);">Habitación en Cluster</div>
+                  <div class="muted" style="margin-top:6px;">Vida en comunidad con zonas compartidas.</div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <!-- Sala de ocio -->
+        <div class="panel">
+          <div class="panel-inner">
+            <div style="border-radius:16px; overflow:hidden; box-shadow:0 16px 36px rgba(0,0,0,.14); border:1px solid rgba(0,0,0,.06);">
+              <img src="https://kadora.es/wp-content/uploads/2025/06/Kadora-Sevilla-Zona-recreo.jpg" alt="Sala de ocio" style="width:100%; height:190px; object-fit:cover; display:block;">
+            </div>
+            <div style="margin-top:12px;">
+              <div style="font-weight:950; color:var(--text);">Sala de ocio</div>
+              <div class="muted" style="margin-top:6px;">
+                Espacio para desconectar y socializar. Respeta el volumen y cuida el mobiliario para una convivencia cómoda.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <!-- Sala de estudio -->
+        <div class="panel">
+          <div class="panel-inner">
+            <div style="border-radius:16px; overflow:hidden; box-shadow:0 16px 36px rgba(0,0,0,.14); border:1px solid rgba(0,0,0,.06);">
+              <img src="https://kadora.es/wp-content/uploads/2025/06/Kadora-Sevilla-Sala-estudios.jpg" alt="Sala de estudio" style="width:100%; height:190px; object-fit:cover; display:block;">
+            </div>
+            <div style="margin-top:12px;">
+              <div style="font-weight:950; color:var(--text);">Sala de estudio</div>
+              <div class="muted" style="margin-top:6px;">
+                Zona pensada para la concentración. Ideal para estudio individual y trabajo en grupo con tono moderado.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <!-- Zonas comunes -->
+        <div class="panel">
+          <div class="panel-inner">
+            <div style="border-radius:16px; overflow:hidden; box-shadow:0 16px 36px rgba(0,0,0,.14); border:1px solid rgba(0,0,0,.06);">
+              <img src="https://kadora.es/wp-content/uploads/2025/07/sevilla-sofas2-1024x683.jpg" alt="Zonas comunes" style="width:100%; height:190px; object-fit:cover; display:block;">
+            </div>
+            <div style="margin-top:12px;">
+              <div style="font-weight:950; color:var(--text);">Zonas comunes</div>
+              <div class="muted" style="margin-top:6px;">
+                Áreas compartidas para convivir. Mantén el espacio limpio y recoge tras su uso.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:10px;"></div>
+      </div>
+    </section>
+
+    
+    <!-- SCREEN: FAQ -->
+    <section class="screen hidden-right" id="screenFAQ">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromFAQ">←</button>
+        <div class="detail-title">FAQ</div>
+      </div>
+
+      <div class="main" style="padding:16px;">
+        <div class="faq-hero">
+          <h2>FAQ del residente</h2>
+          <p>Respuestas rápidas a las dudas más comunes. Si necesitas ayuda adicional, consulta el módulo de contacto o acude a recepción.</p>
+
+          <div class="faq-search">
+            <div class="search">
+              <span style="opacity:.65;">🔎</span>
+              <input id="faqSearch" type="text" placeholder="Buscar en el FAQ (ej: WiFi, lavandería, llaves…)" />
+            </div>
+            <div class="faq-pill">Toca una pregunta</div>
+          </div>
+        </div>
+
+        <div style="height:12px;"></div>
+
+        <div style="font-weight:950; color:rgba(11,36,66,.55); letter-spacing:.7px; font-size:11px; text-transform:uppercase;">
+          Preguntas frecuentes
+        </div>
+
+        <div class="faq-list" id="faqList"></div>
+
+        <div class="faq-note">
+          <b>Importante:</b> Este FAQ es informativo. Las condiciones concretas (horarios, normas y procedimientos) pueden actualizarse. Revisa siempre los comunicados de la app.
+        </div>
+
+        <div style="height:10px;"></div>
+      </div>
+    </section>
+
+    <!-- SCREEN: BUZÓN SUGERENCIAS -->
+    <section class="screen hidden-right" id="screenSugerencias">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromSugerencias">←</button>
+        <div class="detail-title">SUGERENCIAS</div>
+      </div>
+
+      <div class="main" style="padding:16px;">
+        <div class="panel">
+          <div class="panel-inner">
+            <div style="font-size:18px; font-weight:950; color:var(--text);">Buzón de sugerencias</div>
+            <div class="muted" style="margin-top:8px;">
+              Deja tu sugerencia aquí. Nos ayuda a mejorar la experiencia Kadora.
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="field">
+              <label>Deja tu sugerencia aquí</label>
+              <textarea id="suggestionText" maxlength="2000" placeholder="Escribe tu sugerencia… (máx. 2000 caracteres)"></textarea>
+              <div class="charcount" id="suggestionCount">0/2000</div>
+            </div>
+
+            <div class="btn-row" style="margin-top:14px;">
+              <button class="btn primary" id="btnSendSuggestion">Enviar sugerencia</button>
+              <button class="btn ghost" id="btnClearSuggestion">Vaciar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+<!-- SCREEN: PERFIL -->
+    <section class="screen hidden-right" id="screenPerfil">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromPerfil">←</button>
+        <div class="detail-title">MI PERFIL</div>
+      </div>
+
+      <div class="main" style="padding:16px;">
+        <div class="panel">
+          <div class="panel-inner">
+            <div class="profile-top">
+              <div class="profile-photo" title="Foto de perfil">
+                <img id="profilePhoto" alt="Foto" src="https://images.unsplash.com/photo-1520975958225-3f5f2f3a7c4b?auto=format&fit=crop&w=300&q=70">
+              </div>
+              <div style="flex:1;">
+                <div class="profile-name" id="profileName"></div>
+                <div class="profile-res" id="profileResidence"></div>
+              </div>
+              <div class="pill" id="profilePill">0 pts</div>
+            </div>
+
+            <div class="big-stats">
+              <div class="stat-card">
+                <div class="stat-label">Puntos</div>
+                <div class="stat-value" id="statPoints">0</div>
+                <div class="spark" id="sparkPoints"></div>
+              </div>
+              <div class="stat-card">
+                <div class="stat-label">Actividades este mes</div>
+                <div class="stat-value" id="statActs">0</div>
+                <div class="spark" id="sparkActs"></div>
+              </div>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="muted" id="profileSub"></div>
+
+            <div class="btn-row" style="margin-top:16px;">
+              <button class="btn primary" id="btnSurvey">
+                🎁 Cuéntanos sobre ti y llévate un regalo
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <div style="height:10px;"></div>
+
+        <div class="panel">
+          <div class="panel-inner">
+            <div class="panel-title">
+              <h3>Tu posición</h3>
+              <div class="pill" id="profileRankPill">#–</div>
+            </div>
+            <div class="muted" id="profileMiniStats" style="font-size:14px; line-height:1.55;"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCREEN: FORMULARIO (25 campos + progreso) -->
+    <section class="screen hidden-right" id="screenSurvey">
+      <div class="topbar-detail">
+        <button class="back-btn" id="backFromSurvey">←</button>
+        <div class="detail-title">FORMULARIO</div>
+      </div>
+
+            <!-- Progreso sticky (wave) -->
+      <div class="wave-wrap">
+        <div class="wave-head">
+          <div class="title">Completado</div>
+          <div class="pct" id="surveyPct">0%</div>
+        </div>
+
+        <div class="wave-card">
+          <svg class="wave-svg" viewBox="0 0 300 60" preserveAspectRatio="none">
+            <path id="wavePathTrack" class="wave-track" d="M10 30 C 50 5, 80 55, 120 30 S 190 5, 230 30 S 280 55, 290 30"></path>
+            <path id="wavePathFill" class="wave-fill" d="M10 30 C 50 5, 80 55, 120 30 S 190 5, 230 30 S 280 55, 290 30"></path>
+          </svg>
+        </div>
+
+        <div class="muted wave-sub" id="surveyCount">0/25 campos</div>
+      </div>
+
+      <div class="main" style="padding:16px;">
+        <div class="panel">
+          <div class="panel-inner">
+            <div class="muted" style="margin-bottom:12px;">
+              Cuantos más campos complete, mejor le afinamos las actividades (y más fácil cae el regalito 😄).
+            </div>
+
+            <form id="surveyForm" autocomplete="off">
+              <div class="form-grid" id="surveyFields">
+                <!-- Se generan por JS (25 campos) -->
+              </div>
+
+              <div class="btn-row" style="margin-top:16px;">
+                <button type="button" class="btn primary" id="btnSubmitSurvey">Enviar</button>
+                <button type="button" class="btn ghost" id="btnClearSurvey">Vaciar</button>
+              </div>
+            </form>
+
+          </div>
+        </div>
+
+        <div style="height:10px;"></div>
+      </div>
+    </section>
+
+    <!-- Bottom nav global -->
+    <nav class="bottom-nav" id="bottomNav">
+      <button id="navHome"><span>🏠</span>Inicio</button>
+      <button id="navAgenda"><span>🗓️</span>Agenda</button>
+      <button id="navActividades"><span>⭐</span>Actividades</button>
+      <button id="navPerfil"><span>👤</span>Perfil</button>
+    </nav>
+
+  </div>
+
+<script>
+
+/* ----------------- Demo “estado” ----------------- */
+const STATE = {
+  me: {
+    name: "José Manuel",
+    residence: "Kadora Sevilla",
+    profilePhoto: "https://images.unsplash.com/photo-1520975958225-3f5f2f3a7c4b?auto=format&fit=crop&w=300&q=70",
+    points: 0,
+    activitiesThisMonth: 0
+  },
+  quiz: { idx: 0, answered: {}, correctCount: 0, pointsEarned: 0 },
+  survey: { total: 25, values: {} },
+  rankingMode: "sevilla"
+};
+
+function toast(msg){
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.style.display = "block";
+  clearTimeout(toast._t);
+  toast._t = setTimeout(()=> t.style.display = "none", 1800);
+}
+
+/* ----------------- Modal helpers ----------------- */
+const modalBackdrop = document.getElementById("modalBackdrop");
+const modalTitle = document.getElementById("modalTitle");
+const modalBody = document.getElementById("modalBody");
+const modalActions = document.getElementById("modalActions");
+document.getElementById("modalClose").addEventListener("click", closeModal);
+modalBackdrop.addEventListener("click", (e) => { if(e.target === modalBackdrop) closeModal(); });
+
+function openModal({title, bodyHTML, actions=[]}){
+  modalTitle.textContent = title || "Popup";
+  modalBody.innerHTML = bodyHTML || "";
+  modalActions.innerHTML = "";
+  actions.forEach(a => {
+    const b = document.createElement("button");
+    b.className = "btn " + (a.variant || "ghost");
+    b.textContent = a.label || "OK";
+    b.addEventListener("click", a.onClick || closeModal);
+    modalActions.appendChild(b);
+  });
+  modalBackdrop.style.display = "block";
+}
+function closeModal(){
+  modalBackdrop.style.display = "none";
+}
+
+/* ----------------- Data ----------------- */
+const ACCESS = [
+  { label:"Agenda", icon:"🗓️", sub:"Mes completo", route:"agenda" },
+  { label:"Horarios", icon:"📅", sub:"Servicios", route:"horarios" },
+  { label:"Actividades", icon:"⭐", sub:"Calendario", route:"actividades" },
+  { label:"Instalaciones", icon:"🏛️", sub:"Espacios", route:"instalaciones" },
+  { label:"Menú de la semana", icon:"🍽️", sub:"Canva", route:"menu" },
+  { label:"Mapa y transporte", icon:"🗺️", sub:"Cómo llegar", route:"mapa" },
+  { label:"Trivial semanal", icon:"🎮", sub:"Quiz semanal", route:"quiz" },
+  { label:"Muro social", icon:"👥", sub:"Blog", route:"wall" },
+  { label:"FAQ", icon:"❓", sub:"Ayuda", route:"faq" },
+  { label:"Buzón de sugerencias", icon:"📮", sub:"Tu voz", route:"sugerencias" },
+];
+
+const AGENDA_CARDS = [
+  { title:"DESAYUNO 🍳", time:"07:30 — 09:30", points: 5 },
+  { title:"RECEPCIÓN 🔔", time:"09:00 — 18:00", points: 5 },
+  { title:"COMIDA 🍽️", time:"13:30 — 15:30", points: 5 },
+  { title:"SALA DE ESTUDIO 📚", time:"16:00 — 20:00", points: 10 },
+  { title:"CENA 🍝", time:"20:00 — 22:00", points: 5 },
+];
+
+const HORARIOS_BY_DAY = {
+  "L": [
+    { title:"DESAYUNO 🍳", time:"07:30 — 09:30" },
+    { title:"RECEPCIÓN 🔔", time:"09:00 — 18:00" },
+    { title:"COMIDA 🍽️", time:"13:30 — 15:30" },
+    { title:"SALA DE ESTUDIO 📚", time:"16:00 — 20:00" },
+    { title:"CENA 🍝", time:"20:00 — 22:00" },
+  ],
+  "M": [
+    { title:"DESAYUNO 🍳", time:"07:30 — 09:30" },
+    { title:"RECEPCIÓN 🔔", time:"09:00 — 18:00" },
+    { title:"COMIDA 🍽️", time:"13:30 — 15:30" },
+    { title:"SALA DE ESTUDIO 📚", time:"16:00 — 20:00" },
+    { title:"CENA 🍝", time:"20:00 — 22:00" },
+  ],
+  "X": [
+    { title:"DESAYUNO 🍳", time:"07:30 — 09:30" },
+    { title:"RECEPCIÓN 🔔", time:"09:00 — 18:00" },
+    { title:"COMIDA 🍽️", time:"13:30 — 15:30" },
+    { title:"SALA DE ESTUDIO 📚", time:"16:00 — 20:00" },
+    { title:"CENA 🍝", time:"20:00 — 22:00" },
+  ],
+  "J": [
+    { title:"DESAYUNO 🍳", time:"07:30 — 09:30" },
+    { title:"RECEPCIÓN 🔔", time:"09:00 — 18:00" },
+    { title:"COMIDA 🍽️", time:"13:30 — 15:30" },
+    { title:"SALA DE ESTUDIO 📚", time:"16:00 — 20:00" },
+    { title:"CENA 🍝", time:"20:00 — 22:00" },
+  ],
+  "V": [
+    { title:"DESAYUNO 🍳", time:"07:30 — 09:30" },
+    { title:"RECEPCIÓN 🔔", time:"09:00 — 18:00" },
+    { title:"COMIDA 🍽️", time:"13:30 — 15:30" },
+    { title:"SALA DE ESTUDIO 📚", time:"16:00 — 20:00" },
+    { title:"CENA 🍝", time:"20:00 — 22:00" },
+  ],
+  "S": [
+    { title:"BRUNCH 🥐", time:"10:00 — 12:30" },
+    { title:"RECEPCIÓN 🔔", time:"10:00 — 14:00" },
+    { title:"COMIDA 🍽️", time:"14:00 — 16:00" },
+    { title:"CENA 🍝", time:"20:30 — 22:30" },
+  ],
+  "D": [
+    { title:"BRUNCH 🥐", time:"10:00 — 12:30" },
+    { title:"RECEPCIÓN 🔔", time:"10:00 — 14:00" },
+    { title:"COMIDA 🍽️", time:"14:00 — 16:00" },
+    { title:"CENA 🍝", time:"20:30 — 22:30" },
+  ],
+};
+
+const QUIZ = [
+  {
+    q: "¿Cuál es la capital de Andalucía?",
+    desc: "Empezamos suave.",
+    options: [
+      { t: "Sevilla", ok: true },
+      { t: "Málaga", ok: false },
+      { t: "Cádiz", ok: false },
+    ],
+  },
+  {
+    q: "¿Qué acción suma puntos en el ranking?",
+    desc: "Pista: no es mirar desde la barra…",
+    options: [
+      { t: "Acertar el quiz semanal", ok: true },
+      { t: "Cerrar la app", ok: false },
+      { t: "No venir nunca", ok: false },
+    ],
+  },
+  {
+    q: "Reto extra: ¿qué NO es válido para el sorteo de stories?",
+    desc: "Ojo con esta.",
+    options: [
+      { t: "Etiquetar a Kadora en la storie", ok: false },
+      { t: "Subir una storie del evento", ok: false },
+      { t: "No etiquetar a nadie", ok: true },
+    ],
+  },
+];
+
+const CHALLENGES = [
+  { title: "Ve a todas las actividades esta semana", text: "Asista a todas las actividades y entre en un sorteo.", reward: "+50 pts", pts: 50 },
+  { title: "Suba una storie del evento", text: "Suba una storie etiquetándonos para entrar en un sorteo.", reward: "+25 pts", pts: 25 },
+  { title: "Invita a un amigo", text: "Traiga a alguien nuevo y gane puntos extra.", reward: "+15 pts", pts: 15 },
+];
+
+/* Blog (ejemplo + link real) */
+const WALL_POSTS = [
+  {
+    author:"Kadora Blog",
+    when:"Hoy",
+    title:"9 consejos para convertirte en un estudiante exitoso",
+    text:"Hábitos sencillos que te ayudan a estudiar mejor, dormir más y rendir sin quemarte.",
+    linkText:"Leer artículo",
+    linkHref:"https://kadora.es/blog/9-consejos-para-convertirte-en-un-estudiante-exitoso/"
+  },
+  {
+    author:"Kadora",
+    when:"Esta semana",
+    title:"Tip rápido: mini-objetivos (sí, funcionan)",
+    text:"Divide tu estudio en bloques cortos y medibles. Menos fricción, más progreso.",
+    linkText:"Leer artículo",
+    linkHref:"https://kadora.es/blog/9-consejos-para-convertirte-en-un-estudiante-exitoso/"
+  },
+  {
+    author:"Kadora",
+    when:"Esta semana",
+    title:"Plan anti-procrastinación (modo residencia)",
+    text:"Cuando tu entorno te acompaña, estudiar se vuelve más fácil. Usa salas comunes + rutinas.",
+    linkText:"Leer artículo",
+    linkHref:"https://kadora.es/blog/9-consejos-para-convertirte-en-un-estudiante-exitoso/"
+  }
+];
+
+const FAQS = [
+  { q: '¿Qué es Kadora?', a: 'Kadora es la marca de residencias de estudiantes de VALEO MANAGEMENT, y ofrece a los estudiantes alojamiento en-suite, espacios comunes y servicios con un diseño muy cuidado para la mejor experiencia del estudiante.' },
+  { q: '¿Cómo reservo una habitación?', a: 'Reservar una habitación con nosotros es muy sencillo: entra en nuestra web (España: www.kadora.es · Portugal: www.kadora.pt), elige la habitación y haz clic en ‘Reservar’ para seguir los pasos. Si prefieres, contáctanos por teléfono o email indicando tus preferencias y te ayudaremos.' },
+  { q: '¿Puedo leer el contrato de alojamiento antes de realizar la reserva?', a: '¡Por supuesto! Al comenzar la reserva online (o por teléfono), se genera un contrato de alojamiento con todos los detalles.' },
+  { q: '¿Tengo que ser estudiante para alojarme en Kadora?', a: 'Sí. Nuestros residentes deben ser estudiantes (a tiempo completo o parcial) y acreditarlo.' },
+  { q: '¿Puedo vivir con mis amigos?', a: '¡Claro que sí! Llámanos o indícanos el nombre de tus amigos durante la reserva y haremos todo lo posible para que podáis vivir juntos. Si reservas sin preferencia, intentaremos ubicarte cerca de residentes afines (misma uni y/o curso).' },
+  { q: '¿Puedo firmar un contrato por menos de un curso académico?', a: 'Tenemos un número limitado de plazas para contratos de corta duración. Llámanos para estudiar tu caso y ofrecerte un contrato a medida.' },
+  { q: '¿Tenéis habitaciones adaptadas para Personas de Movilidad Reducida (PMR)?', a: 'Sí. Nuestras instalaciones están adaptadas. Si tienes requerimientos médicos o discapacidad, llámanos para asignarte una habitación acorde a tus necesidades.' },
+  { q: '¿Existen distintas modalidades de pago?', a: 'Sí. Puedes pagar mensualmente o en un único pago por adelantado. Las fechas aparecen en tu contrato y en tu cuenta de usuario. Si tienes dudas, el equipo te ayuda a elegir.' },
+  { q: 'He tenido un imprevisto y no sé si voy a poder pagar una cuota a tiempo – ¿qué puedo hacer?', a: 'Habla con el equipo de Kadora en tu residencia y explícanos tu situación para que podamos ayudarte.' },
+  { q: '¿Cómo funcionan las fianzas o depósitos?', a: 'Las fianzas se depositan en la entidad bancaria correspondiente y se devuelven al finalizar la estancia. En caso de impagos o daños, se descontarán de la fianza.' },
+  { q: '¿Se permiten mascotas en Kadora?', a: 'No se admiten mascotas. Los perros de asistencia sí son bienvenidos. Consulta con el equipo.' },
+  { q: '¿Qué equipamiento puedo encontrar en el gimnasio?', a: 'Suele contar con zona de musculación, zona de cardio (máquinas para cardio y elípticas) y zona de yoga (pelota y esterillas). Consulta con el equipo para más detalles.' },
+  { q: '¿Puedo aparcar mi coche?', a: 'Algunas residencias cuentan con plazas de aparcamiento a precio especial para residentes. Consulta en tu resi.' },
+  { q: '¿Contáis con zona de aparcamiento para bicis?', a: 'Sí, hay aparcamiento privado exterior para bicis. El uso es gratuito, pero debes traer tu candado.' },
+  { q: '¿Tenéis sistemas de seguridad?', a: 'Las residencias están operativas 24h y siempre hay alguien del equipo disponible. También hay circuito de cámaras de circuito cerrado.' },
+  { q: '¿Cómo puedo gestionar cualquier incidencia de mantenimiento?', a: 'Informa al equipo de recepción por correo, a través del portal de Kadora (‘MYLIV LOGIN’) o en persona. El equipo de mantenimiento está disponible en la residencia.' },
+  { q: '¿Qué es el Kadora Experience Programme?', a: 'Es una serie de eventos para fomentar nuestro SPIRIT: Social, Personal, Interesante, Recreativo, Inspirador y Reflexivo/Talento. Incluye fitness, cocina, música, descuentos, charlas, mindfulness y más.' },
+  { q: '¿Qué elementos incluye la cocina del piso compartido / cluster?', a: 'Vitrocerámica, horno, microondas y neveras con congelador (media nevera por residente). Debes traer utensilios, cubertería, sartenes y vajilla.' },
+  { q: '¿Hay servicio de limpieza de las zonas comunes en los pisos compartidos / cluster?', a: 'Las zonas comunes se limpian semanalmente o mensualmente (según residencia). Aun así, debes mantener habitación/baño/zona común ordenados, lavavajillas al día y gestionar basura/reciclaje.' },
+  { q: '¿Cómo funciona el programa de “Recomienda a un amigo”?', a: 'Recomienda la residencia y recibirás un descuento por cada amigo que traigas. Contacta con el equipo para más info.' },
+  { q: '¿Cuánto megas y dispositivos puedo usar con el WIFI de Kadora?', a: 'El WIFI es ilimitado, súper-rápido e incluido. Puedes conectar hasta 8 dispositivos por Wifi en tu habitación y por cable la velocidad alcanza 100MB. Por 15€ puedes tener dispositivos ilimitados.' },
+  { q: '¿Qué incluye mi habitación?', a: 'Cama doble (según tipología), almacenaje, armario, puertos USB, enchufes, luz de escritorio, mesa y silla ergonómica, persianas de oscuridad total y baño en-suite. En estudios: mesa de comedor y cocina funcional con horno y/o microondas, vitrocerámica y frigorífico compacto con congelador.' },
+  { q: 'Me alojo en un piso compartido. ¿Qué elementos incluye el salón del piso compartido?', a: 'Smart TV (40” o 50” según residencia), barra de sonido, sofá, medio frigorífico por residente, puffs y mesa de comedor con sillas para todos.' },
+  { q: '¿Cuándo puedo mudarme a Kadora?', a: 'Puedes mudarte a partir de la fecha acordada en tu contrato. Te contactaremos con información para facilitar la llegada y mudanza.' },
+  { q: '¿Qué documentos debo presentar a mi llegada?', a: 'Documento identificativo original con foto (DNI, Pasaporte o NIE), pago del primer mes y documento SEPA firmado.' },
+  { q: '¿Cómo puedo saber con quién voy a convivir?', a: 'Por RGPD no se facilitan nombres ni contactos de otros residentes. Antes de la llegada recibirás información de bienvenida con detalles para conectar con la comunidad.' },
+  { q: '¿Puedo realizar el check-in a cualquier hora?', a: 'Sí. Si llegas fuera del horario habitual de recepción, avísanos con antelación para prepararlo todo.' },
+  { q: '¿Puedo subarrendar mi habitación?', a: 'No. No está permitido subarrendar tu habitación durante tu estancia.' },
+];
+
+
+function iconForFAQ(q){
+  const s = q.toLowerCase();
+  if(s.includes("wifi")) return "📶";
+  if(s.includes("lavander")) return "🧺";
+  if(s.includes("paquet") || s.includes("envío")) return "📦";
+  if(s.includes("llave") || s.includes("tarjeta")) return "🔑";
+  if(s.includes("mascot")) return "🐾";
+  if(s.includes("gimnas")) return "🏋️";
+  if(s.includes("aparcar") || s.includes("coche")) return "🅿️";
+  if(s.includes("bici")) return "🚲";
+  if(s.includes("seguridad")) return "🛡️";
+  if(s.includes("mantenimiento") || s.includes("incidencia")) return "🛠️";
+  if(s.includes("contrato")) return "📝";
+  if(s.includes("pago") || s.includes("fianza") || s.includes("depós")) return "💳";
+  if(s.includes("check-in") || s.includes("mud")) return "🏠";
+  return "❓";
+}
+
+function renderFAQ(filter=""){
+  const list = document.getElementById("faqList");
+  const q = (filter || "").trim().toLowerCase();
+
+  const items = FAQS.filter(x => {
+    if(!q) return true;
+    return (x.q.toLowerCase().includes(q) || x.a.toLowerCase().includes(q));
+  });
+
+  list.innerHTML = items.map((it, idx) => `
+    <div class="faq-item" data-faq="${idx}">
+      <div class="faq-q">
+        <div class="left">
+          <div class="faq-ico">${iconForFAQ(it.q)}</div>
+          <div class="txt">${it.q}</div>
+        </div>
+        <div class="chev">⌄</div>
+      </div>
+      <div class="faq-a">
+        <div class="muted">${it.a}</div>
+      </div>
+    </div>
+  `).join("") || `<div class="muted" style="margin-top:10px;">No hay resultados para “${filter}”.</div>`;
+
+  list.querySelectorAll(".faq-item .faq-q").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const item = btn.closest(".faq-item");
+      // cerrar otros para estilo “acordeón”
+      list.querySelectorAll(".faq-item").forEach(x => { if(x !== item) x.classList.remove("open"); });
+      item.classList.toggle("open");
+    });
+  });
+
+  const s = document.getElementById("faqSearch");
+  if(s && s.value !== filter) s.value = filter;
+}
+
+function initFAQ(){
+  const input = document.getElementById("faqSearch");
+  if(!input) return;
+  input.value = "";
+  input.addEventListener("input", () => renderFAQ(input.value));
+  renderFAQ("");
+}
+
+
+/* Calendario del mes (para AGENDA y ACTIVIDADES) */
+const CAL = {
+  /* clave: YYYY-MM-DD */
+  "2026-10-06": [
+    { title:"Yoga 🧘", time:"19:00", place:"Sala multiusos", points:15 },
+    { title:"Trivia Night 🎮", time:"21:00", place:"Zona común", points:10 },
+  ],
+  "2026-10-08": [
+    { title:"Torneo Ping Pong 🏓", time:"20:00", place:"Sala juegos", points:20 },
+  ],
+  "2026-10-12": [
+    { title:"Taller CV & LinkedIn 💼", time:"18:30", place:"Sala estudio", points:25 },
+    { title:"Cena temática 🍝", time:"21:00", place:"Comedor", points:10 },
+  ],
+};
+
+function listAllCalendarActivities(){
+  const out = [];
+  Object.keys(CAL).sort().forEach(date => {
+    CAL[date].forEach(ev => out.push({date, ...ev}));
+  });
+  return out;
+}
+
+/* Ranking demo (Sevilla vs Global) */
+let RANKING_SEVILLA = [
+  { name:"Lucía", points: 180, note:"Quiz + actividades" },
+  { name:"Álvaro", points: 160, note:"Reto stories" },
+  { name:"Carmen", points: 140, note:"Asistencia top" },
+  { name:"Dani", points: 120, note:"Quiz completo" },
+  { name: STATE.me.name, points: STATE.me.points, note:"Usted" },
+];
+let RANKING_GLOBAL = [
+  { name:"Nora (Barcelona)", points: 260, note:"Modo pro" },
+  { name:"Hugo (Porto)", points: 230, note:"Eventos + retos" },
+  { name:"Lucía (Sevilla)", points: 180, note:"Quiz + actividades" },
+  { name:"Iris (Granada)", points: 170, note:"Constancia" },
+  { name: STATE.me.name + " (Sevilla)", points: STATE.me.points, note:"Usted" },
+];
+
+/* ----------------- Helpers ----------------- */
+function bumpActivity(){
+  STATE.me.activitiesThisMonth += 1;
+  renderPerfil();
+}
+
+function setNavCompact(isCompact){
+  const nav = document.getElementById("bottomNav");
+  if(!nav) return;
+  nav.classList.toggle("compact", !!isCompact);
+}
+
+
+function initSugerencias(){
+  const ta = document.getElementById("suggestionText");
+  const cc = document.getElementById("suggestionCount");
+  if(!ta || !cc) return;
+
+  const update = () => {
+    cc.textContent = `${ta.value.length}/2000`;
+  };
+  update();
+  ta.addEventListener("input", update);
+
+  document.getElementById("btnClearSuggestion").onclick = () => {
+    ta.value = "";
+    update();
+    toast("Texto borrado");
+  };
+
+  document.getElementById("btnSendSuggestion").onclick = () => {
+    const msg = ta.value.trim();
+    if(!msg){
+      toast("Escribe una sugerencia");
+      return;
+    }
+    openModal({
+      title:"Sugerencia enviada",
+      bodyHTML:`<div class="muted">¡Gracias! Hemos recibido tu sugerencia. (Demo: aquí se enviaría al equipo de Kadora)</div>`,
+      actions:[{label:"OK", variant:"primary", onClick: () => { closeModal(); ta.value=""; update(); }}]
+    });
+  };
+}
+
+
+/* ----------------- Render: Accesos ----------------- */
+function renderAccess(){
+  const el = document.getElementById("accessScroller");
+  el.innerHTML = ACCESS.map(a => `
+    <div class="tile" data-route="${a.route}" data-label="${a.label}">
+      <div class="icon">${a.icon}</div>
+      <div class="label">${a.label}</div>
+      <div class="sub">${a.sub}</div>
+    </div>
+  `).join("");
+
+  el.querySelectorAll(".tile").forEach(tile => {
+    tile.addEventListener("click", () => {
+      const route = tile.dataset.route;
+      if(route === "agenda") goAgenda();
+      else if(route === "horarios") goHorarios();
+      else if(route === "actividades") goActividades();
+      else if(route === "instalaciones") goInstalaciones();
+      else if(route === "menu") goMenu();
+      else if(route === "mapa") goMapa();
+      else if(route === "quiz") {
+        goHome();
+setTimeout(() => {
+          const qp = document.getElementById("quizPanel");
+          const main = document.getElementById("homeMain");
+          if(qp && main){
+            const y = qp.getBoundingClientRect().top - main.getBoundingClientRect().top + main.scrollTop - 12;
+            main.scrollTo({top: y, behavior:"smooth"});
+          }
+        }, 60);
+      }
+      else if(route === "faq") goFAQ();
+      else if(route === "sugerencias") goSugerencias();
+      else if(route === "wall") document.getElementById("homeMain").scrollTo({top: document.getElementById("wallPanel").offsetTop - 20, behavior:"smooth"});
+      else toast("Demo: " + tile.dataset.label);
+    });
+  });
+}
+
+/* ----------------- Render: Agenda (Home cards rápidas) ----------------- */
+function renderAgendaCards(){
+  const el = document.getElementById("agendaScroller");
+  el.innerHTML = AGENDA_CARDS.map((c, i) => `
+    <div class="agenda-card" data-attend="${i}">
+      <h3>${c.title}</h3>
+      <p>${c.time}</p>
+</div>
+  `).join("");
+
+  el.querySelectorAll("[data-attend]").forEach(card => {
+    card.addEventListener("click", () => {
+      const idx = +card.dataset.attend;
+      toast(AGENDA_CARDS[idx].title + " · " + AGENDA_CARDS[idx].time);
+    });
+});
+}
+
+/* ----------------- Render: Horarios (compacto) ----------------- */
+function renderHorarios(dayKey){
+  const DAYS = [
+    {k:"L", name:"Lun"},
+    {k:"M", name:"Mar"},
+    {k:"X", name:"Mié"},
+    {k:"J", name:"Jue"},
+    {k:"V", name:"Vie"},
+    {k:"S", name:"Sáb"},
+    {k:"D", name:"Dom"},
+  ];
+
+  // Si no llega día, selecciona el de hoy (lunes=0)
+  if(!dayKey){
+    const jsDow = new Date().getDay(); // dom=0
+    const map = ["D","L","M","X","J","V","S"];
+    dayKey = map[jsDow] || "L";
+  }
+
+  // Render day strip
+  const strip = document.getElementById("dayStrip");
+  if(strip){
+    strip.innerHTML = DAYS.map(d => `
+      <button class="day-pill ${d.k===dayKey ? "active":""}" data-day="${d.k}">
+        ${d.name}
+      </button>
+    `).join("");
+
+    strip.querySelectorAll("[data-day]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const k = btn.dataset.day;
+        renderHorarios(k);
+      });
+    });
+
+    // Asegura que el seleccionado se vea (scroll suave)
+    const active = strip.querySelector(".day-pill.active");
+    if(active){
+      active.scrollIntoView({behavior:"smooth", inline:"center", block:"nearest"});
+    }
+  }
+
+  const list = HORARIOS_BY_DAY[dayKey] || [];
+  const el = document.getElementById("blocksList");
+  if(el){
+    el.innerHTML = list.map(b => `
+      <div class="block">
+        <div class="title">${b.title}</div>
+        <div class="time">${b.time}</div>
+      </div>
+    `).join("") || `<div class="muted" style="padding:16px;">No hay horarios cargados para este día.</div>`;
+  }
+}
+
+/* ----------------- Render: Agenda Mes ----------------- */
+function renderMonthCalendar(){
+  // Octubre 2026 (demo)
+  const year = 2026, month = 9; // 0-index (9 => Octubre)
+  const first = new Date(year, month, 1);
+  const last = new Date(year, month+1, 0);
+  const startDow = (first.getDay() + 6) % 7; // lunes=0
+  const totalDays = last.getDate();
+
+  const cells = [];
+  // días del mes anterior para rellenar
+  const prevLast = new Date(year, month, 0).getDate();
+  for(let i=0; i<startDow; i++){
+    cells.push({day: prevLast - (startDow-1-i), muted:true, date: new Date(year, month-1, prevLast - (startDow-1-i))});
+  }
+  for(let d=1; d<=totalDays; d++){
+    cells.push({day:d, muted:false, date:new Date(year, month, d)});
+  }
+  while(cells.length % 7 !== 0){
+    const nextDay = cells.length - (startDow + totalDays) + 1;
+    cells.push({day:nextDay, muted:true, date:new Date(year, month+1, nextDay)});
+  }
+
+  const wrap = document.getElementById("calendarCells");
+  wrap.innerHTML = cells.map(c => {
+    const key = toISO(c.date);
+    const has = CAL[key]?.length || 0;
+    const todayKey = toISO(new Date());
+    const cls = ["cal-cell", c.muted ? "muted-day": "", (key===todayKey ? "today": "")].join(" ");
+    return `
+      <div class="${cls}" data-date="${key}">
+        <div class="n">${c.day}</div>
+        ${has ? `<div class="cal-badge">${has}</div>` : ``}
+      </div>
+    `;
+  }).join("");
+
+  wrap.querySelectorAll("[data-date]").forEach(cell => {
+    cell.addEventListener("click", () => {
+      const date = cell.dataset.date;
+      showDayPopup(date);
+    });
+  });
+}
+
+function toISO(d){
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const dd = String(d.getDate()).padStart(2,"0");
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+function prettyDate(iso){
+  const [y,m,d] = iso.split("-").map(x=>+x);
+  const dt = new Date(y, m-1, d);
+  const opts = { weekday:"long", day:"numeric", month:"long" };
+  return dt.toLocaleDateString("es-ES", opts);
+}
+
+function showDayPopup(iso){
+  const list = CAL[iso] || [];
+  document.getElementById("dayPill").textContent = list.length ? `${list.length} actividad${list.length===1?"":"es"}` : "Sin actividades";
+
+  const body = `
+    <div class="muted" style="font-weight:900; margin-bottom:10px;">${prettyDate(iso)}</div>
+    ${
+      list.length
+        ? list.map(ev => `
+          <div style="padding:10px 0;">
+            <div style="font-weight:950; color:var(--text);">${ev.title}</div>
+            <div class="muted" style="margin-top:6px;">${ev.time} · ${ev.place}</div>
+            <div class="muted" style="margin-top:6px; font-weight:900;">+${ev.points} pts</div>
+          </div>
+          <div class="hr" style="margin:0;"></div>
+        `).join("")
+        : `<div class="muted">Ese día no hay nada programado (de momento 👀).</div>`
+    }
+  `;
+
+  openModal({
+    title:"Agenda del día",
+    bodyHTML: body,
+    actions:[
+      {label:"Cerrar", variant:"ghost", onClick: closeModal}
+    ]
+  });
+}
+
+/* ----------------- Render: Actividades (solo calendario) ----------------- */
+function renderActivities(){
+  const all = listAllCalendarActivities();
+  document.getElementById("actCount").textContent = `${all.length}`;
+
+  const wrap = document.getElementById("activitiesList");
+  if(all.length === 0){
+    wrap.innerHTML = `<div class="muted">No hay actividades cargadas.</div>`;
+    return;
+  }
+
+  wrap.innerHTML = all.map(ev => `
+    <div style="padding:10px 0;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+        <div>
+          <div style="font-weight:950; color:var(--text);">${ev.title}</div>
+          <div class="muted" style="margin-top:6px;">
+            ${prettyDate(ev.date)} · ${ev.time} · ${ev.place}
+          </div>
+        </div>
+        <div class="pill">+${ev.points} pts</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" data-join="${ev.date}|${ev.title}">Apuntarme</button>
+        <button class="btn ghost" data-more="${ev.date}|${ev.title}">Detalles</button>
+      </div>
+      <div class="hr"></div>
+    </div>
+  `).join("");
+
+  wrap.querySelectorAll("[data-join]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      toast("Apuntado ✅ (demo)");
+      bumpActivity();
+    });
+  });
+  wrap.querySelectorAll("[data-more]").forEach(btn => {
+    btn.addEventListener("click", () => toast("Demo: detalles actividad"));
+  });
+}
+
+/* ----------------- Render: Destacados (Quiz + Retos) ----------------- */
+function renderQuiz(){
+  const q = QUIZ[STATE.quiz.idx];
+  document.getElementById("quizQ").textContent = q.q;
+  document.getElementById("quizDesc").textContent = q.desc;
+  document.getElementById("quizPill").textContent = `+${STATE.quiz.pointsEarned} pts`;
+
+  const opts = document.getElementById("quizOpts");
+  opts.innerHTML = "";
+
+  q.options.forEach((o, i) => {
+    const btn = document.createElement("button");
+    btn.className = "opt";
+    btn.textContent = o.t;
+
+    const already = STATE.quiz.answered[STATE.quiz.idx];
+    if(already !== undefined){
+      if(i === already) btn.classList.add(o.ok ? "good" : "bad");
+      btn.disabled = true;
+      btn.style.opacity = "0.95";
+      btn.style.cursor = "default";
+    }
+
+    btn.addEventListener("click", () => {
+      STATE.quiz.answered[STATE.quiz.idx] = i;
+
+      if(o.ok){
+        STATE.quiz.correctCount++;
+        STATE.quiz.pointsEarned += 10;
+        addPoints(10, "Respuesta correcta (+10)");
+      } else {
+        toast("Respuesta incorrecta");
+      }
+
+      renderQuiz();
+      if(Object.keys(STATE.quiz.answered).length === QUIZ.length){
+        toast(`Quiz completado: ${STATE.quiz.correctCount}/${QUIZ.length}`);
+      }
+    });
+
+    opts.appendChild(btn);
+  });
+}
+
+function renderChallenges(){
+  const el = document.getElementById("challenges");
+  el.innerHTML = CHALLENGES.map((c, idx) => `
+    <div style="padding:12px 0;">
+      <div style="display:flex; align-items:flex-start; justify-content:space-between; gap:10px;">
+        <div style="flex:1;">
+          <div style="font-weight:950; color:var(--text); font-size:14px;">${c.title}</div>
+          <div class="muted" style="margin-top:6px;">${c.text}</div>
+        </div>
+        <div class="pill">${c.reward}</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn primary" data-claim="${idx}">Marcar como hecho</button>
+        <button class="btn ghost" data-info="${idx}">Detalles</button>
+      </div>
+      <div class="hr"></div>
+    </div>
+  `).join("");
+
+  el.querySelectorAll("[data-claim]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = +btn.dataset.claim;
+      openModal({
+        title:"Reto en revisión",
+        bodyHTML: `
+          <div class="muted" style="margin-bottom:10px;">
+            El equipo de Kadora revisará si has completado el reto. Para validarlo, indícanos:
+          </div>
+          <div class="form-grid">
+            <div class="field">
+              <label>Tu nombre</label>
+              <input id="chkName" type="text" placeholder="Ej: Laura" />
+            </div>
+            <div class="field">
+              <label>Nº de habitación</label>
+              <input id="chkRoom" type="text" placeholder="Ej: 312" />
+            </div>
+          </div>
+        `,
+        actions:[
+          {label:"Enviar", variant:"primary", onClick: () => {
+            const name = (document.getElementById("chkName")?.value || "").trim();
+            const room = (document.getElementById("chkRoom")?.value || "").trim();
+            if(!name || !room){
+              toast("Rellena nombre y habitación");
+              return;
+            }
+            closeModal();
+            toast("Enviado ✅ (pendiente de revisión)");
+            // Demo: no damos puntos hasta revisar, pero podemos desactivar el botón
+            btn.disabled = true;
+            btn.textContent = "En revisión ⏳";
+            btn.style.opacity = ".65";
+          }},
+          {label:"Cancelar", variant:"ghost", onClick: closeModal}
+        ]
+      });
+    });
+  });
+
+  el.querySelectorAll("[data-info]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const idx = +btn.dataset.info;
+      toast("Demo: " + CHALLENGES[idx].title);
+    });
+  });
+}
+
+/* ----------------- Render: Muro social (links reales) ----------------- */
+function renderWall(){
+  const el = document.getElementById("wallPanel");
+  if(!el) return;
+  el.innerHTML = WALL_POSTS.map((p, i) => `
+    <div class="post">
+      <div class="avatar">${(p.author || "K")[0]}</div>
+      <div style="flex:1;">
+        <h4>${p.title}</h4>
+        <div class="meta">${p.author} · ${p.when}</div>
+        <div class="text">${p.text}</div>
+        <div style="margin-top:8px;">
+          <a href="${p.linkHref}" target="_blank" rel="noopener">${p.linkText} →</a>
+        </div>
+      </div>
+    </div>
+    ${i < WALL_POSTS.length-1 ? `<div class="hr" style="margin:0 14px;"></div>` : ``}
+  `).join("");
+}
+
+/* ----------------- Render: Ranking ----------------- */
+function currentRankingData(){
+  if(STATE.rankingMode === "global") return RANKING_GLOBAL;
+  return RANKING_SEVILLA;
+}
+
+function renderRanking(){
+  // Mantener el "yo" actualizado en ambos rankings
+  RANKING_SEVILLA = RANKING_SEVILLA.map(r => r.name === STATE.me.name ? ({...r, points: STATE.me.points}) : r);
+  RANKING_GLOBAL = RANKING_GLOBAL.map(r => r.name.startsWith(STATE.me.name) ? ({...r, points: STATE.me.points}) : r);
+
+  const data = currentRankingData();
+  const sorted = [...data].sort((a,b)=> b.points - a.points);
+
+  const el = document.getElementById("rankingPanel");
+  el.innerHTML = sorted.map((r, idx) => `
+    <div class="rank-item">
+      <div class="rank-left">
+        <div class="medal">${idx+1}</div>
+        <div>
+          <div class="rank-name">${r.name}</div>
+          <div class="rank-sub">${r.note}</div>
+        </div>
+      </div>
+      <div class="points">${r.points} pts</div>
+    </div>
+    ${idx < sorted.length-1 ? `<div class="hr" style="margin:0 14px;"></div>` : ``}
+  `).join("");
+
+  const myPos = sorted.findIndex(x => (x.name === STATE.me.name) || x.name.startsWith(STATE.me.name)) + 1;
+  document.getElementById("rankMeta").textContent = myPos ? `Usted va #${myPos}` : "Puntos semanales";
+
+  renderPerfil();
+}
+
+function getMyRankPosition(){
+  const sorted = [...currentRankingData()].sort((a,b)=> b.points - a.points);
+  return sorted.findIndex(x => (x.name === STATE.me.name) || x.name.startsWith(STATE.me.name)) + 1;
+}
+
+/* ----------------- Perfil ----------------- */
+function makeSpark(el, value, max=300){
+  const n = 10;
+  const wrap = document.getElementById(el);
+  if(!wrap) return;
+  wrap.innerHTML = "";
+  // barras pseudo-aleatorias + tendencia según value
+  for(let i=0;i<n;i++){
+    const bar = document.createElement("span");
+    const base = (i+1)/n;
+    const v = Math.max(0.12, Math.min(1, (value/max) * (0.7 + base*0.6)));
+    bar.style.height = `${Math.round(v * 100)}%`;
+    wrap.appendChild(bar);
+  }
+}
+
+function renderPerfil(){
+  const nameEl = document.getElementById("profileName");
+  const resEl  = document.getElementById("profileResidence");
+  const pillEl = document.getElementById("profilePill");
+  const rankPill = document.getElementById("profileRankPill");
+  const mini = document.getElementById("profileMiniStats");
+  const subEl  = document.getElementById("profileSub");
+
+  if(!nameEl) return;
+
+  nameEl.textContent = STATE.me.name;
+  resEl.textContent = STATE.me.residence;
+  pillEl.textContent = `${STATE.me.points} pts`;
+
+  const rank = getMyRankPosition();
+  rankPill.textContent = rank ? `#${rank}` : "#–";
+
+  document.getElementById("statPoints").textContent = STATE.me.points;
+  document.getElementById("statActs").textContent = STATE.me.activitiesThisMonth;
+  makeSpark("sparkPoints", STATE.me.points, 300);
+  makeSpark("sparkActs", STATE.me.activitiesThisMonth*30, 300);
+
+  let vibe = "Empiece con una actividad del calendario y esto despega. 🚀";
+  if(STATE.me.activitiesThisMonth >= 1 && STATE.me.activitiesThisMonth <= 3) vibe = "Buen arranque. Dos más y ya se nota en el ranking. 👀";
+  if(STATE.me.activitiesThisMonth >= 4 && STATE.me.activitiesThisMonth <= 7) vibe = "Nivel consistente. La constancia gana (y también los sorteos). 😄";
+  if(STATE.me.activitiesThisMonth >= 8) vibe = "Modo pro activado. Respeto. 🫡";
+  subEl.textContent = vibe;
+
+  mini.innerHTML = `
+    • Puntos totales: <b>${STATE.me.points}</b><br>
+    • Actividades este mes: <b>${STATE.me.activitiesThisMonth}</b><br>
+    • Posición en ranking: <b>#${rank || "–"}</b><br>
+    • Filtro ranking: <b>${STATE.rankingMode === "sevilla" ? "Sevilla" : "Global Kadora"}</b>
+  `;
+
+  const img = document.getElementById("profilePhoto");
+  if(img) img.src = STATE.me.profilePhoto;
+}
+
+/* ----------------- Puntos ----------------- */
+function addPoints(pts, reason){
+  STATE.me.points += pts;
+  renderRanking();
+    // FAQ init (si existe)
+  const fs = document.getElementById("faqSearch");
+  if(fs){ fs.addEventListener("input", renderFAQ); }
+toast(`${reason}: +${pts} pts`);
+}
+
+/* ----------------- Formulario (25 campos) ----------------- */
+const SURVEY_FIELDS_DEF = [
+  { key:"f1",  label:"Nombre completo", type:"text", placeholder:"" },
+  { key:"f2",  label:"Edad", type:"number", placeholder:"" },
+  { key:"f3",  label:"Curso / año", type:"text", placeholder:"" },
+  { key:"f4",  label:"Teléfono", type:"tel", placeholder:"" },
+  { key:"f5",  label:"Email", type:"email", placeholder:"" },
+  { key:"f6",  label:"Ciudad", type:"text", placeholder:"" },
+  { key:"f7",  label:"País", type:"text", placeholder:"" },
+  { key:"f8",  label:"Preferencia de horario", type:"select", options:["", "Mañana", "Tarde", "Noche"] },
+  { key:"f9",  label:"Deportes favoritos", type:"text", placeholder:"" },
+  { key:"f10", label:"Nivel deportivo", type:"select", options:["", "Principiante", "Intermedio", "Avanzado"] },
+  { key:"f11", label:"Intereses académicos", type:"text", placeholder:"" },
+  { key:"f12", label:"Intereses culturales", type:"text", placeholder:"" },
+  { key:"f13", label:"Música favorita", type:"text", placeholder:"" },
+  { key:"f14", label:"Series/Pelis", type:"text", placeholder:"" },
+  { key:"f15", label:"Le gusta cocinar", type:"select", options:["", "Sí", "No", "A veces"] },
+  { key:"f16", label:"Alergias", type:"text", placeholder:"" },
+  { key:"f17", label:"Dieta", type:"select", options:["", "Normal", "Vegetariana", "Vegana", "Sin gluten", "Otra"] },
+  { key:"f18", label:"Idiomas", type:"text", placeholder:"" },
+  { key:"f19", label:"Le interesa voluntariado", type:"select", options:["", "Sí", "No"] },
+  { key:"f20", label:"Le interesan eventos de networking", type:"select", options:["", "Sí", "No"] },
+  { key:"f21", label:"Hobbies", type:"text", placeholder:"" },
+  { key:"f22", label:"Objetivo este mes", type:"text", placeholder:"" },
+  { key:"f23", label:"¿Qué actividad quiere ver en Kadora?", type:"text", placeholder:"" },
+  { key:"f24", label:"¿Cómo se enteró de nosotros?", type:"select", options:["", "Amigos", "Redes", "Cartel", "Recepción", "Otro"] },
+  { key:"f25", label:"Comentarios", type:"textarea", placeholder:"" },
+];
+
+function renderSurveyFields(){
+  const wrap = document.getElementById("surveyFields");
+  wrap.innerHTML = SURVEY_FIELDS_DEF.map(f => {
+    if(f.type === "select"){
+      const opts = f.options.map(o => `<option value="${o}">${o === "" ? "Seleccione..." : o}</option>`).join("");
+      return `
+        <div class="field">
+          <label>${f.label}</label>
+          <select class="survey-field" data-key="${f.key}">
+            ${opts}
+          </select>
+        </div>
+      `;
+    }
+    if(f.type === "textarea"){
+      return `
+        <div class="field">
+          <label>${f.label}</label>
+          <textarea class="survey-field" data-key="${f.key}" placeholder="${f.placeholder || ""}"></textarea>
+        </div>
+      `;
+    }
+    return `
+      <div class="field">
+        <label>${f.label}</label>
+        <input class="survey-field" data-key="${f.key}" type="${f.type}" placeholder="${f.placeholder || ""}" />
+      </div>
+    `;
+  }).join("");
+
+  // Cargar valores guardados (si vuelve al formulario)
+  wrap.querySelectorAll(".survey-field").forEach(el => {
+    const key = el.dataset.key;
+    const v = STATE.survey.values[key];
+    if(v !== undefined) el.value = v;
+  });
+
+  // Escuchar cambios para recalcular progreso
+  wrap.querySelectorAll(".survey-field").forEach(el => {
+    el.addEventListener("input", () => {
+      const key = el.dataset.key;
+      STATE.survey.values[key] = el.value;
+      updateSurveyProgress();
+    });
+    el.addEventListener("change", () => {
+      const key = el.dataset.key;
+      STATE.survey.values[key] = el.value;
+      updateSurveyProgress();
+    });
+  });
+
+  updateSurveyProgress();
+}
+
+function countFilledSurvey(){
+  let filled = 0;
+  for(const f of SURVEY_FIELDS_DEF){
+    const val = (STATE.survey.values[f.key] ?? "").toString().trim();
+    if(val !== "") filled++;
+  }
+  return filled;
+}
+
+function updateSurveyProgress(){
+  const filled = countFilledSurvey();
+  const total = STATE.survey.total;
+  const pct = Math.round((filled / total) * 100);
+
+  const pctEl = document.getElementById("surveyPct");
+  const countEl = document.getElementById("surveyCount");
+  if(pctEl) pctEl.textContent = `${pct}%`;
+  if(countEl) countEl.textContent = `${filled}/${total} campos`;
+
+  // Wave progress (línea que se rellena)
+  const wave = document.getElementById("wavePathFill");
+  if(wave){
+    const len = STATE.survey._waveLen || wave.getTotalLength();
+    STATE.survey._waveLen = len;
+    wave.style.strokeDasharray = `${len}`;
+    wave.style.strokeDashoffset = `${len * (1 - (pct/100))}`;
+  }
+
+  if(filled === total){
+    toast("Formulario completo ✅ (demo: regalo desbloqueado 🎁)");
+  }
+}
+
+/* ----------------- Quiz controls ----------------- */
+document.getElementById("btnNextQ").addEventListener("click", () => {
+  STATE.quiz.idx = (STATE.quiz.idx + 1) % QUIZ.length;
+  renderQuiz();
+});
+document.getElementById("btnResetQuiz").addEventListener("click", () => {
+  STATE.quiz.idx = 0;
+  STATE.quiz.answered = {};
+  STATE.quiz.correctCount = 0;
+  STATE.quiz.pointsEarned = 0;
+  renderQuiz();
+  toast("Quiz reiniciado");
+});
+
+/* ----------------- Navigation ----------------- */
+const home = document.getElementById("screenHome");
+const agenda = document.getElementById("screenAgenda");
+const horarios = document.getElementById("screenHorarios");
+const actividades = document.getElementById("screenActividades");
+const menu = document.getElementById("screenMenu");
+const mapa = document.getElementById("screenMapa");
+const instalaciones = document.getElementById("screenInstalaciones");
+const faq = document.getElementById("screenFAQ");
+const sugerencias = document.getElementById("screenSugerencias");
+const perfil = document.getElementById("screenPerfil");
+const survey = document.getElementById("screenSurvey");
+function hideAll(){
+  [home, agenda, horarios, actividades, menu, mapa, instalaciones, faq, sugerencias, perfil, survey].forEach(s => {
+    if(!s) return;
+    s.classList.remove("active");
+    s.classList.add("hidden-right");
+    s.classList.remove("hidden-left");
+  });
+}
+
+function goHome(){
+  hideAll();
+  home.classList.remove("hidden-right");
+  home.classList.add("active");
+  setNavCompact(false);
+}
+
+function goAgenda(){
+  hideAll();
+  agenda.classList.remove("hidden-right");
+  agenda.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(false);
+  renderMonthCalendar();
+}
+
+function goHorarios(){
+  hideAll();
+  horarios.classList.remove("hidden-right");
+  horarios.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(true);
+  renderHorarios();
+}
+
+function goActividades(){
+  hideAll();
+  actividades.classList.remove("hidden-right");
+  actividades.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(false);
+  renderActivities();
+}
+
+function goMenu(){
+  hideAll();
+  menu.classList.remove("hidden-right");
+  menu.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(false);
+}
+
+function goMapa(){
+  hideAll();
+  mapa.classList.remove("hidden-right");
+  mapa.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(false);
+}
+
+function goInstalaciones(){
+  hideAll();
+  instalaciones.classList.remove("hidden-right");
+  instalaciones.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(false);
+}
+
+function goFAQ(){
+  hideAll();
+  faq.classList.remove("hidden-right");
+  faq.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(false);
+  renderFAQ();
+}
+
+function goSugerencias(){
+  hideAll();
+  sugerencias.classList.remove("hidden-right");
+  sugerencias.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(false);
+}
+
+function goPerfil(){
+  hideAll();
+  perfil.classList.remove("hidden-right");
+  perfil.classList.add("active");
+  home.classList.add("hidden-left");
+  setNavCompact(false);
+  renderPerfil();
+}
+
+function goSurvey(){
+  hideAll();
+  survey.classList.remove("hidden-right");
+  survey.classList.add("active");
+  perfil.classList.add("hidden-left");
+  setNavCompact(true);
+  renderSurveyFields();
+}
+
+/* Top triggers */
+document.getElementById("agendaTitle").addEventListener("click", goAgenda);
+
+/* Bottom nav global */
+document.getElementById("navHome").addEventListener("click", goHome);
+document.getElementById("navAgenda").addEventListener("click", goAgenda);
+document.getElementById("navActividades").addEventListener("click", goActividades);
+document.getElementById("navPerfil").addEventListener("click", goPerfil);
+
+/* Back buttons */
+document.getElementById("backFromAgenda").addEventListener("click", goHome);
+document.getElementById("backFromHorarios").addEventListener("click", goHome);
+document.getElementById("backFromActividades").addEventListener("click", goHome);
+document.getElementById("backFromMenu").addEventListener("click", goHome);
+document.getElementById("backFromMapa").addEventListener("click", goHome);
+document.getElementById("backFromInstalaciones").addEventListener("click", goHome);
+document.getElementById("backFromFAQ").addEventListener("click", goHome);
+document.getElementById("backFromSugerencias").addEventListener("click", goHome);
+document.getElementById("backFromPerfil").addEventListener("click", goHome);
+document.getElementById("btnSurvey").addEventListener("click", goSurvey);
+document.getElementById("backFromSurvey").addEventListener("click", goPerfil);
+/* Ranking filter */
+document.getElementById("rankFilter").addEventListener("change", (e) => {
+  STATE.rankingMode = e.target.value;
+  renderRanking();
+});
+
+/* Survey actions */
+document.getElementById("btnSubmitSurvey").addEventListener("click", () => {
+  updateSurveyProgress();
+  const filled = countFilledSurvey();
+  toast(`Enviado (demo): ${filled}/${STATE.survey.total} campos`);
+});
+document.getElementById("btnClearSurvey").addEventListener("click", () => {
+  STATE.survey.values = {};
+  renderSurveyFields();
+  // init wave dash
+  updateSurveyProgress();
+  toast("Formulario vaciado");
+});
+
+/* ----------------- Init ----------------- */
+function init(){
+  renderAccess();
+  renderAgendaCards();
+  renderQuiz();
+  renderChallenges();
+  renderWall();
+  renderRanking();
+  renderPerfil();
+  goHome();
+}
+init();
+
+</script>
+</body>
+</html>
